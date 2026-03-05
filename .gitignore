@@ -1,0 +1,37 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Database
+*.db
+
+# Environment files with secrets
+backend/.env
+ui/.env.local
+
+# Node
+ui/node_modules/
+ui/.next/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+backend/test_*.py
+
+# ngrok
+ngrok.exe
+
+# SDK build artifacts
+sdk/keystone.egg-info/

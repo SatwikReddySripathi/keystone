@@ -1,0 +1,78 @@
+# Keystone Transaction Governance Policy
+# Version is tracked — every decision records which version was used.
+# Changing this file = new version = old approvals may not match.
+
+policy_id: default
+version: "1.0.0"
+description: "Default governance policy for ServiceNow bulk updates"
+
+# Global thresholds used by checks and rules
+thresholds:
+  max_blast_radius: 50        # Block if more than 50 records
+  max_error_rate: 0.1         # 10% error rate allowed in expand
+  canary_size: 5              # Always canary 5 records first
+  canary_max_error_rate: 0.0  # Zero errors allowed in canary
+
+# Rules are evaluated in order. Highest-priority decision wins:
+#   BLOCK (4) > APPROVAL_REQUIRED (3) > CANARY (2) > AUTO (1)
+#
+# Multiple rules can match — the strictest decision applies.
+# ALL matched reasons are collected and shown in the UI.
+
+rules:
+  # Rule 1: Hard limit on blast radius
+  - name: blast_radius_limit
+    condition:
+      field: blast_radius
+      op: gt
+      value: 50
+    decision: BLOCK
+    reason: "Blast radius {blast_radius} exceeds maximum of {threshold}"
+    required_checks: []
+
+  # Rule 2: Never auto-update P1 incidents
+  - name: no_p1_incidents
+    condition:
+      flag: has_p1
+      op: eq
+      value: true
+    decision: BLOCK
+    reason: "Target set contains P1 incidents which require manual handling"
+    required_checks: []
+
+  # Rule 3: VIP callers need human approval
+  - name: vip_approval_required
+    condition:
+      flag: has_vip
+      op: eq
+      value: true
+    decision: APPROVAL_REQUIRED
+    reason: "VIP callers present : Approval required before execution"
+    required_checks:
+      - approval_bound
+      - no_vip_state_change
+
+  # Rule 4: Medium blast radius → canary first
+  - name: canary_for_medium_blast
+    condition:
+      field: blast_radius
+      op: gt
+      value: 10
+    decision: CANARY
+    reason: "Blast radius {blast_radius} > 10 : Canary execution required"
+    required_checks:
+      - no_out_of_scope
+      - only_intended_fields
+      - error_rate_ok
+
+  # Rule 5: Small changes auto-approve
+  - name: auto_small_changes
+    condition:
+      field: blast_radius
+      op: lte
+      value: 10
+    decision: AUTO
+    reason: "Blast radius {blast_radius} within auto-approve threshold"
+    required_checks:
+      - no_out_of_scope
+      - only_intended_fields
