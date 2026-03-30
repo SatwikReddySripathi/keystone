@@ -33,7 +33,24 @@ def post_approval_request(
     """
     Post an approval request to Slack.
     Returns True if the message was sent successfully.
+    Never raises — all errors are caught and logged so the caller continues.
     """
+    try:
+        return _post_approval_request_inner(
+            action_id=action_id, blast_radius=blast_radius,
+            preview_hash=preview_hash, policy_version=policy_version,
+            flags=flags, reasons=reasons, diffs_sample=diffs_sample,
+            actor=actor, tool=tool, action_type=action_type, ui_url=ui_url,
+        )
+    except Exception as e:
+        print(f"Slack notification failed (build/send): {type(e).__name__}: {e}")
+        return False
+
+
+def _post_approval_request_inner(
+    action_id, blast_radius, preview_hash, policy_version,
+    flags, reasons, diffs_sample, actor, tool, action_type, ui_url,
+) -> bool:
     # Build flag badges
     flag_parts = []
     if flags.get("has_p1"):
@@ -147,12 +164,8 @@ def post_approval_request(
         ]
     }
 
-    try:
-        resp = requests.post(SLACK_WEBHOOK_URL, json=payload, timeout=5)
-        return resp.status_code == 200
-    except Exception as e:
-        print(f"Slack notification failed: {e}")
-        return False
+    resp = requests.post(SLACK_WEBHOOK_URL, json=payload, timeout=5)
+    return resp.status_code == 200
 
 
 def post_approval_result(action_id: str, approver: str, approved: bool, status: str):

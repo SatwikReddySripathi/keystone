@@ -16,6 +16,7 @@ from fastapi.responses import JSONResponse
 from app.db import get_db, add_event
 from app.slack import post_approval_result
 from app.connectors.servicenow_sim import get_connector as get_snow
+from app.connectors.servicenow_real import get_connector as get_snow_real
 from app.engine.canary import select_canary_subset, run_post_checks
 from app.engine.breaker import evaluate_breaker
 from app.engine.proof import generate_proof
@@ -26,6 +27,7 @@ import requests as http_requests
 
 CONNECTORS = {
     "servicenow_sim": get_snow,
+    "servicenow_real": get_snow_real,
 }
 
 
@@ -155,7 +157,8 @@ def _handle_approve(action_id: str, approver_id: str, approver_name: str, value:
             (datetime.utcnow().isoformat(), action_id)
         )
 
-        canary_results = connector.execute_update(canary_ids, changes)
+        _meta = {"action_id": action_id, "actor_name": approver_name}
+        canary_results = connector.execute_update(canary_ids, changes, metadata=_meta)
         canary_error_rate = len([r for r in canary_results if not r.get("success")]) / max(len(canary_results), 1)
         conn.execute(
             """INSERT INTO executions (action_id, phase, subset_ids_json, results_json, error_rate)
@@ -202,7 +205,7 @@ def _handle_approve(action_id: str, approver_id: str, approver_name: str, value:
                     "UPDATE actions SET status='expanding', updated_at=? WHERE action_id=?",
                     (datetime.utcnow().isoformat(), action_id)
                 )
-                expand_results = connector.execute_update(remaining_ids, changes)
+                expand_results = connector.execute_update(remaining_ids, changes, metadata=_meta)
                 expand_error_rate = len([r for r in expand_results if not r.get("success")]) / max(len(expand_results), 1)
                 conn.execute(
                     """INSERT INTO executions (action_id, phase, subset_ids_json, results_json, error_rate)

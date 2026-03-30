@@ -1,34 +1,34 @@
 "use client";
 
-/* ── Badge ──────────────────────────────────────── */
+/* ── Badge ──────────────────────────────────────────────────────── */
 const BADGE_STYLES: Record<string, string> = {
-  green: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
-  red: "bg-red-500/15 text-red-300 border-red-500/30",
-  amber: "bg-amber-500/15 text-amber-300 border-amber-500/30",
-  sky: "bg-sky-500/15 text-sky-300 border-sky-500/30",
-  violet: "bg-violet-500/15 text-violet-300 border-violet-500/30",
-  gray: "bg-white/5 text-gray-300 border-white/10",
-  white: "bg-white/5 text-white border-white/10",
+  green:  "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800",
+  red:    "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800",
+  amber:  "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800",
+  sky:    "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950 dark:text-sky-400 dark:border-sky-800",
+  violet: "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950 dark:text-violet-400 dark:border-violet-800",
+  gray:   "bg-gray-100 text-gray-600 border-gray-200 dark:bg-[#21262d] dark:text-[#8b949e] dark:border-[#30363d]",
+  white:  "bg-gray-50 text-gray-700 border-gray-200 dark:bg-[#21262d] dark:text-[#e6edf3] dark:border-[#30363d]",
 };
 
 export function Badge({ color = "gray", children, className = "" }: {
   color?: string; children: React.ReactNode; className?: string;
 }) {
   return (
-    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium border ${BADGE_STYLES[color] || BADGE_STYLES.gray} ${className}`}>
+    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium border ${BADGE_STYLES[color] || BADGE_STYLES.gray} ${className}`}>
       {children}
     </span>
   );
 }
 
-/* ── Lifecycle Stepper ──────────────────────────── */
+/* ── Lifecycle Stepper ──────────────────────────────────────────── */
 const STEPS = [
-  { key: "preview", label: "Preview" },
-  { key: "policy", label: "Policy" },
+  { key: "preview",  label: "Diff" },
+  { key: "policy",   label: "Gate" },
   { key: "approval", label: "Approval" },
-  { key: "canary", label: "Canary" },
-  { key: "expand", label: "Expand" },
-  { key: "receipt", label: "Receipt" },
+  { key: "canary",   label: "Canary" },
+  { key: "expand",   label: "Rollout" },
+  { key: "receipt",  label: "Audit Log" },
 ];
 
 type StepState = "done" | "active" | "failed" | "skipped" | "pending";
@@ -46,7 +46,6 @@ export function LifecycleStepper({ events, status }: { events: any[]; status: st
         if (types.some((t: string) => t.includes("approval.recorded"))) return "done";
         if (types.some((t: string) => t.includes("approval.denied"))) return "failed";
         if (status === "awaiting_approval") return "active";
-        if (types.some((t: string) => t.includes("awaiting"))) return "skipped";
         return "skipped";
       case "canary":
         if (types.some((t: string) => t.includes("breaker.tripped"))) return "failed";
@@ -67,47 +66,40 @@ export function LifecycleStepper({ events, status }: { events: any[]; status: st
     }
   }
 
+  const dotCls: Record<StepState, string> = {
+    done:    "bg-emerald-500",
+    active:  "bg-sky-500 ring-4 ring-sky-500/20 animate-pulse",
+    failed:  "bg-red-500",
+    skipped: "bg-ks-border",
+    pending: "bg-ks-surface-2 border-2 border-ks-border",
+  };
+  const lblCls: Record<StepState, string> = {
+    done:    "text-emerald-600 dark:text-emerald-400",
+    active:  "text-sky-600 dark:text-sky-400",
+    failed:  "text-red-600 dark:text-red-400",
+    skipped: "text-ks-text3",
+    pending: "text-ks-text3",
+  };
+  const lineCls: Record<StepState, string> = {
+    done:    "bg-emerald-300 dark:bg-emerald-800",
+    active:  "bg-ks-border",
+    failed:  "bg-ks-border",
+    skipped: "bg-ks-border",
+    pending: "bg-ks-border",
+  };
+
   return (
     <div className="flex items-center">
       {STEPS.map((step, i) => {
         const state = getState(step.key);
-
-        const dotColor = {
-          done: "bg-emerald-500 border-emerald-400",
-          active: "bg-sky-500 border-sky-400 animate-pulse",
-          failed: "bg-red-500 border-red-400",
-          skipped: "bg-gray-700 border-gray-600",
-          pending: "bg-gray-800 border-gray-700",
-        }[state];
-
-        const labelColor = {
-          done: "text-emerald-300",
-          active: "text-sky-300",
-          failed: "text-red-300",
-          skipped: "text-gray-600",
-          pending: "text-gray-600",
-        }[state];
-
-        const lineColor = state === "done" ? "bg-emerald-500/50" : state === "failed" ? "bg-red-500/50" : "bg-gray-800";
-
-        const symbol = {
-          done: "OK",
-          active: "..",
-          failed: "NO",
-          skipped: "--",
-          pending: "",
-        }[state];
-
         return (
-          <div key={step.key} className="flex items-center">
-            <div className="flex flex-col items-center w-16">
-              <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${dotColor}`}>
-                <span className="text-[9px] font-bold text-white">{symbol}</span>
-              </div>
-              <span className={`text-[10px] mt-1.5 font-semibold ${labelColor}`}>{step.label}</span>
+          <div key={step.key} className="flex items-center flex-1 last:flex-none">
+            <div className="flex flex-col items-center text-center" style={{ minWidth: "64px" }}>
+              <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${dotCls[state]}`} />
+              <span className={`text-[10px] mt-1.5 font-medium ${lblCls[state]}`}>{step.label}</span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className={`w-4 h-0.5 mb-5 ${lineColor}`} />
+              <div className={`flex-1 h-px mb-4 ${lineCls[state]}`} />
             )}
           </div>
         );
@@ -116,16 +108,14 @@ export function LifecycleStepper({ events, status }: { events: any[]; status: st
   );
 }
 
-/* ── Risk Meter ─────────────────────────────────── */
+/* ── Risk Meter ─────────────────────────────────────────────────── */
 export function RiskMeter({ flags, blastRadius, environment }: {
   flags: any; blastRadius: number; environment: string;
 }) {
   const factors: { label: string; score: number }[] = [];
-
   if (environment === "production") factors.push({ label: "Production environment", score: 3 });
   if (blastRadius > 100) factors.push({ label: `${blastRadius} records (>100)`, score: 3 });
   else if (blastRadius > 10) factors.push({ label: `${blastRadius} records (>10)`, score: 2 });
-
   if (flags?.has_p1) factors.push({ label: "P1 critical incidents", score: 5 });
   if (flags?.has_p2) factors.push({ label: "P2 high incidents", score: 3 });
   if (flags?.has_vip) factors.push({ label: "VIP callers affected", score: 4 });
@@ -134,56 +124,33 @@ export function RiskMeter({ flags, blastRadius, environment }: {
 
   const total = factors.reduce((s, f) => s + f.score, 0);
   const level = total >= 8 ? "High" : total >= 4 ? "Medium" : "Low";
-  const color = total >= 8 ? "text-red-300" : total >= 4 ? "text-amber-300" : "text-emerald-300";
+  const color = total >= 8 ? "text-red-600 dark:text-red-400" : total >= 4 ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400";
   const barColor = total >= 8 ? "bg-red-500" : total >= 4 ? "bg-amber-500" : "bg-emerald-500";
   const pct = Math.min(total / 15 * 100, 100);
 
   return (
     <div>
       <div className="flex items-center gap-2 mb-2">
-        <span className={`text-sm font-bold ${color}`}>{level} Risk</span>
-        <span className="text-xs text-gray-400">({total} pts)</span>
+        <span className={`text-sm font-semibold ${color}`}>{level} Risk</span>
+        <span className="text-xs text-ks-text3">({total} pts)</span>
       </div>
-      <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden mb-2">
-        <div className={`h-full rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${pct}%` }} />
+      <div className="w-full h-1 bg-ks-border rounded-full overflow-hidden mb-3">
+        <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
       </div>
-      <div className="space-y-0.5">
-        {factors.filter(f => f.score > 0).map((f, i) => (
+      <div className="space-y-1">
+        {factors.map((f, i) => (
           <div key={i} className="flex items-center gap-2 text-xs">
-            <span className="text-gray-400">+{f.score}</span>
-            <span className="text-gray-300">{f.label}</span>
+            <span className="text-ks-text3 w-5 text-right tabular-nums">+{f.score}</span>
+            <span className="text-ks-text2">{f.label}</span>
           </div>
         ))}
+        {factors.length === 0 && <p className="text-xs text-ks-text3">No risk factors detected.</p>}
       </div>
     </div>
   );
 }
 
-/* ── Breaker Status ─────────────────────────────── */
-export function BreakerBadge({ tripped, reason }: { tripped: boolean; reason?: string }) {
-  if (tripped) {
-    return (
-      <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/25">
-        <div className="w-3 h-3 rounded-full bg-red-500 shrink-0" />
-        <div>
-          <div className="text-xs font-bold text-red-300">BREAKER TRIPPED</div>
-          {reason && <div className="text-[11px] text-red-300/50 mt-0.5 max-w-xs">{reason.slice(0, 80)}</div>}
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/3 border border-white/8">
-      <div className="w-3 h-3 rounded-full bg-emerald-500 shrink-0" />
-      <div>
-        <div className="text-xs font-medium text-gray-300">Circuit breaker armed</div>
-        <div className="text-[11px] text-gray-500">Auto-halt on anomaly detection</div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Event Timeline ─────────────────────────────── */
+/* ── Event Timeline ─────────────────────────────────────────────── */
 interface TimelineEvent {
   type: string;
   payload_json: any;
@@ -204,7 +171,7 @@ const EVENT_MAP: Record<string, { label: string; kind: EventKind }> = {
   "canary.started":            { label: "Canary started",              kind: "info" },
   "canary.completed":          { label: "Canary completed",            kind: "success" },
   "checks.completed":          { label: "Safety invariants checked",   kind: "info" },
-  "breaker.tripped":           { label: "Circuit breaker TRIPPED",     kind: "error" },
+  "breaker.tripped":           { label: "Circuit breaker tripped",     kind: "error" },
   "expand.started":            { label: "Expansion started",           kind: "info" },
   "expand.completed":          { label: "Expansion completed",         kind: "success" },
   "action.completed":          { label: "Action completed",            kind: "success" },
@@ -215,83 +182,67 @@ const EVENT_MAP: Record<string, { label: string; kind: EventKind }> = {
 function getEventSummary(type: string, payload: any): string {
   if (!payload || typeof payload !== "object") return "";
   switch (type) {
-    case "action.created":
-      return payload.mode ? `Mode: ${payload.mode}` : "";
-    case "preview.generated":
-      return `${payload.blast_radius || "?"} records matched  |  Hash: ${(payload.preview_hash || "").slice(0, 12)}...`;
+    case "action.created":      return payload.mode ? `Mode: ${payload.mode}` : "";
+    case "preview.generated":   return `${payload.blast_radius || "?"} records matched · hash: ${(payload.preview_hash || "").slice(0, 12)}...`;
     case "decision.made": {
       const rules = (payload.matched_rules || []).join(", ");
-      return `Decision: ${payload.decision || "?"}  |  Rules: ${rules || "default"}`;
+      return `${payload.decision || "?"} · rules: ${rules || "default"}`;
     }
-    case "canary.started":
-      return `Subset: ${(payload.subset || []).length || "?"} records`;
-    case "canary.completed":
-      return `${payload.count || "?"} records  |  Error rate: ${((payload.error_rate || 0) * 100).toFixed(1)}%`;
+    case "canary.started":      return `${(payload.subset || []).length || "?"} records`;
+    case "canary.completed":    return `${payload.count || "?"} records · error rate: ${((payload.error_rate || 0) * 100).toFixed(1)}%`;
     case "checks.completed": {
       const r = payload.results || {};
       const passed = Object.values(r).filter(v => v === true).length;
       const total = Object.keys(r).length;
       const failed = Object.entries(r).filter(([, v]) => v === false).map(([k]) => k.replace(/_/g, " "));
-      if (failed.length > 0) return `${passed}/${total} passed  |  Failed: ${failed.join(", ")}`;
-      return `All ${total} checks passed`;
+      return failed.length > 0 ? `${passed}/${total} passed · failed: ${failed.join(", ")}` : `All ${total} passed`;
     }
-    case "breaker.tripped":
-      return (payload.reason || "").slice(0, 120);
-    case "expand.started":
-      return `${payload.count || "?"} remaining records`;
-    case "expand.completed":
-      return `${payload.count || "?"} records  |  Error rate: ${((payload.error_rate || 0) * 100).toFixed(1)}%`;
-    case "approval.recorded":
-      return `By ${payload.approver || "unknown"} via ${payload.channel || "?"}`;
-    case "proof.generated":
-      return `Signature: ${payload.signature_prefix || "?"}...`;
-    default:
-      return "";
+    case "breaker.tripped":     return (payload.reason || "").slice(0, 120);
+    case "expand.started":      return `${payload.count || "?"} remaining records`;
+    case "expand.completed":    return `${payload.count || "?"} records · error rate: ${((payload.error_rate || 0) * 100).toFixed(1)}%`;
+    case "approval.recorded":   return `By ${payload.approver || "unknown"} via ${payload.channel || "?"}`;
+    case "proof.generated":     return `Signature: ${payload.signature_prefix || "?"}...`;
+    default:                    return "";
   }
 }
 
 export function EventTimeline({ events }: { events: TimelineEvent[] }) {
-  // Color schemes for each kind
-  const kindStyles: Record<EventKind, { border: string; dot: string; label: string; summary: string; bg: string }> = {
-    success: { border: "border-l-emerald-500", dot: "bg-emerald-500",  label: "text-emerald-300", summary: "text-emerald-300/60", bg: "bg-emerald-500/[0.03]" },
-    error:   { border: "border-l-red-500",     dot: "bg-red-500",      label: "text-red-300",     summary: "text-red-300/60",     bg: "bg-red-500/[0.05]" },
-    warning: { border: "border-l-amber-500",   dot: "bg-amber-500",    label: "text-amber-300",   summary: "text-amber-300/60",   bg: "bg-amber-500/[0.03]" },
-    info:    { border: "border-l-sky-500",     dot: "bg-sky-500",      label: "text-sky-300",     summary: "text-sky-300/60",     bg: "bg-sky-500/[0.03]" },
-    neutral: { border: "border-l-gray-600",    dot: "bg-gray-500",     label: "text-gray-300",    summary: "text-gray-400",       bg: "bg-transparent" },
+  const kindDot: Record<EventKind, string> = {
+    success: "bg-emerald-500",
+    error:   "bg-red-500",
+    warning: "bg-amber-500",
+    info:    "bg-sky-500",
+    neutral: "bg-ks-text3",
+  };
+  const kindLabel: Record<EventKind, string> = {
+    success: "text-emerald-700 dark:text-emerald-400",
+    error:   "text-red-700 dark:text-red-400",
+    warning: "text-amber-700 dark:text-amber-400",
+    info:    "text-sky-700 dark:text-sky-400",
+    neutral: "text-ks-text",
   };
 
   return (
-    <div className="space-y-1">
+    <div className="relative pl-5">
+      <div className="absolute left-[6px] top-1 bottom-1 w-px bg-ks-border" />
       {events.map((e, i) => {
         const t = e.type || "";
         const cfg = EVENT_MAP[t] || { label: t, kind: "neutral" as EventKind };
         const payload = e.payload_json || {};
-
-        // Override kind based on actual data
         let kind = cfg.kind;
         if (t === "checks.completed") {
-          const results = payload.results || {};
-          const hasFail = Object.values(results).some(v => v === false);
-          kind = hasFail ? "error" : "success";
+          kind = Object.values(payload.results || {}).some(v => v === false) ? "error" : "success";
         }
-
-        const s = kindStyles[kind];
         const summary = getEventSummary(t, payload);
-
         return (
-          <div key={i} className={`flex items-start border-l-[3px] ${s.border} ${s.bg} rounded-r-lg px-4 py-3`}>
-            {/* Dot indicator */}
-            <div className={`w-2.5 h-2.5 rounded-full ${s.dot} shrink-0 mt-1 mr-3`} />
-
-            {/* Content */}
+          <div key={i} className="relative flex items-start gap-3 pb-3.5 last:pb-0">
+            <div className={`relative z-10 w-2 h-2 rounded-full shrink-0 mt-1.5 ring-2 ring-ks-surface ${kindDot[kind]}`} />
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-4">
-                <span className={`text-sm font-semibold ${s.label}`}>{cfg.label}</span>
-                <span className="text-[10px] text-gray-500 font-mono shrink-0">{e.created_at}</span>
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className={`text-xs font-medium ${kindLabel[kind]}`}>{cfg.label}</span>
+                <span className="text-[10px] text-ks-text3 font-mono shrink-0">{e.created_at}</span>
               </div>
-              {summary && (
-                <p className={`text-xs mt-1 ${s.summary}`}>{summary}</p>
-              )}
+              {summary && <p className="text-[11px] text-ks-text2 mt-0.5 leading-relaxed">{summary}</p>}
             </div>
           </div>
         );
@@ -300,39 +251,7 @@ export function EventTimeline({ events }: { events: TimelineEvent[] }) {
   );
 }
 
-/* ── Mini Bar Chart ─────────────────────────────── */
-export function MiniBarChart({ data, colorMap }: {
-  data: Record<string, number>;
-  colorMap?: Record<string, string>;
-}) {
-  const entries = Object.entries(data);
-  const max = Math.max(...entries.map(([, v]) => v), 1);
-  const palette = [
-    "bg-indigo-500", "bg-sky-500", "bg-violet-500", "bg-emerald-500",
-    "bg-amber-500", "bg-rose-500", "bg-teal-500", "bg-orange-500",
-  ];
-
-  function getColor(label: string, index: number): string {
-    if (colorMap && colorMap[label]) return colorMap[label];
-    return palette[index % palette.length];
-  }
-
-  return (
-    <div className="space-y-1.5">
-      {entries.map(([label, value], i) => (
-        <div key={label} className="flex items-center gap-2">
-          <span className="text-xs text-gray-300 w-28 text-right truncate">{label}</span>
-          <div className="flex-1 h-5 bg-gray-800/60 rounded overflow-hidden">
-            <div className={`h-full rounded ${getColor(label, i)}`} style={{ width: `${(value / max) * 100}%` }} />
-          </div>
-          <span className="text-xs text-gray-200 w-6 text-right font-medium">{value}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ── Helpers ─────────────────────────────────────── */
+/* ── Helpers ─────────────────────────────────────────────────────── */
 export function parseJson(s: string | null | undefined) {
   if (!s) return null;
   try { return JSON.parse(s); } catch { return null; }

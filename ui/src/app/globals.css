@@ -2,26 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Light mode ── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ks-bg:         #f3f4f6;
+  --ks-surface:    #ffffff;
+  --ks-surface-2:  #f9fafb;
+  --ks-hover:      #f3f4f6;
+  --ks-border:     #e5e7eb;
+  --ks-border-sub: #f0f2f5;
+  --ks-text:       #111827;
+  --ks-text2:      #6b7280;
+  --ks-text3:      #9ca3af;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Dark mode ── */
+.dark {
+  --ks-bg:         #0d1117;
+  --ks-surface:    #161b22;
+  --ks-surface-2:  #0d1117;
+  --ks-hover:      #1c2128;
+  --ks-border:     #30363d;
+  --ks-border-sub: #21262d;
+  --ks-text:       #e6edf3;
+  --ks-text2:      #8b949e;
+  --ks-text3:      #484f58;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--ks-bg);
+  color: var(--ks-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* Thin scrollbar for dark mode panels */
+.dark ::-webkit-scrollbar { width: 6px; height: 6px; }
+.dark ::-webkit-scrollbar-track { background: transparent; }
+.dark ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+/* Prevent focus ring on mouse clicks */
+*:focus:not(:focus-visible) {
+  outline: none;
 }

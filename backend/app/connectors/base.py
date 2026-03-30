@@ -34,10 +34,13 @@ class BaseConnector(ABC):
         ...
 
     @abstractmethod
-    def execute_update(self, sys_ids: list[str], changes: dict) -> list[dict]:
+    def execute_update(self, sys_ids: list[str], changes: dict, metadata: dict | None = None) -> list[dict]:
         """
         Actually apply changes to specific records.
         Returns: list of per-record results {sys_id, success, error?, changes_applied}
+
+        metadata: optional dict with attribution info (e.g. action_id, actor_name).
+        Connectors may use this to write audit notes to the target system.
         """
         ...
 

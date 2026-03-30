@@ -11,13 +11,16 @@ in sequence and writes to the database at every step. If anything
 fails or is blocked, we still generate a proof of what happened.
 """
 import json
+import traceback
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query
+import requests as _http
 
 from app.auth import authenticate
 from app.db import get_db, add_event
 from app.models import ActionInput, RunResponse
 from app.connectors.servicenow_sim import get_connector as get_snow
+from app.connectors.servicenow_real import get_connector as get_snow_real
 from app.engine.preview import generate_preview
 from app.engine.policy import evaluate_policy
 from app.engine.canary import select_canary_subset, run_post_checks
@@ -31,6 +34,7 @@ router = APIRouter(prefix="/v1", tags=["actions"])
 # Add new connectors here. Each maps a name to a factory function.
 CONNECTORS = {
     "servicenow_sim": get_snow,
+    "servicenow_real": get_snow_real,
 }
 
 
@@ -89,7 +93,14 @@ def run_action(body: ActionInput, org_id: str = Depends(authenticate)):
 
         # ── Step 2: Generate preview ──
         params = body.params.model_dump()
-        preview = generate_preview(connector, params)
+        try:
+            preview = generate_preview(connector, params)
+        except _http.HTTPError as e:
+            status_code = e.response.status_code if e.response is not None else 503
+            raise HTTPException(status_code, f"Connector query failed: HTTP {status_code} — {str(e)}")
+        except Exception as e:
+            traceback.print_exc()
+            raise HTTPException(500, f"Preview generation failed: {type(e).__name__}: {str(e)}")
 
         conn.execute(
             """INSERT INTO previews
@@ -194,7 +205,8 @@ def run_action(body: ActionInput, org_id: str = Depends(authenticate)):
             _update_status(conn, action_id, "canary_executing")
 
             # Execute on canary subset only
-            canary_results = connector.execute_update(canary_ids, body.params.changes)
+            _meta = {"action_id": action_id, "actor_name": body.actor.name}
+            canary_results = connector.execute_update(canary_ids, body.params.changes, metadata=_meta)
             canary_errors = [r for r in canary_results if not r.get("success")]
             canary_error_rate = len(canary_errors) / max(len(canary_results), 1)
 
@@ -255,7 +267,7 @@ def run_action(body: ActionInput, org_id: str = Depends(authenticate)):
                     _update_status(conn, action_id, "expanding")
 
                     expand_results = connector.execute_update(
-                        remaining_ids, body.params.changes
+                        remaining_ids, body.params.changes, metadata=_meta
                     )
                     expand_errors = [r for r in expand_results if not r.get("success")]
                     expand_error_rate = len(expand_errors) / max(len(expand_results), 1)
@@ -445,7 +457,8 @@ def execute_from_dry_run(action_id: str, org_id: str = Depends(authenticate)):
             add_event(conn, new_action_id, "canary.started", {"subset": canary_ids})
             _update_status(conn, new_action_id, "canary_executing")
 
-            canary_results = connector.execute_update(canary_ids, body.params.changes)
+            _meta2 = {"action_id": new_action_id, "actor_name": actor_data.get("name", "Keystone Agent")}
+            canary_results = connector.execute_update(canary_ids, body.params.changes, metadata=_meta2)
             canary_error_rate = len([r for r in canary_results if not r.get("success")]) / max(len(canary_results), 1)
             conn.execute(
                 """INSERT INTO executions (action_id, phase, subset_ids_json, results_json, error_rate) VALUES (?,?,?,?,?)""",
@@ -472,7 +485,7 @@ def execute_from_dry_run(action_id: str, org_id: str = Depends(authenticate)):
                 if remaining_ids:
                     add_event(conn, new_action_id, "expand.started", {"count": len(remaining_ids)})
                     _update_status(conn, new_action_id, "expanding")
-                    expand_results = connector.execute_update(remaining_ids, body.params.changes)
+                    expand_results = connector.execute_update(remaining_ids, body.params.changes, metadata=_meta2)
                     expand_error_rate = len([r for r in expand_results if not r.get("success")]) / max(len(expand_results), 1)
                     conn.execute("INSERT INTO executions (action_id, phase, subset_ids_json, results_json, error_rate) VALUES (?,?,?,?,?)",
                         (new_action_id, "expand", json.dumps(remaining_ids), json.dumps(expand_results), expand_error_rate))
@@ -577,6 +590,239 @@ def get_action(action_id: str, org_id: str = Depends(authenticate)):
 # ═════════════════════════════════════════════════════
 # GET /v1/actions/:id/proof — Signed proof receipt
 # ═════════════════════════════════════════════════════
+@router.get("/actions/{action_id}/targets")
+def get_action_targets(action_id: str, org_id: str = Depends(authenticate)):
+    """
+    Returns the flat list of target records for an action — incident numbers,
+    sys_ids, and their current (pre-execution) field values.
+
+    Primary use: open all target records in ServiceNow before execution so
+    you can watch them change in real time.
+
+    Also returns:
+    - a single ServiceNow list-view URL filtering to just these records
+    - which records were canary (if already executed)
+    - which are still protected (not yet touched)
+    """
+    with get_db() as conn:
+        action = conn.execute(
+            "SELECT * FROM actions WHERE action_id=? AND org_id=?",
+            (action_id, org_id)
+        ).fetchone()
+        if not action:
+            raise HTTPException(404, "Action not found")
+
+        preview = conn.execute(
+            "SELECT * FROM previews WHERE action_id=?", (action_id,)
+        ).fetchone()
+        if not preview:
+            return {"action_id": action_id, "records": [], "total": 0}
+
+        diffs = []
+        try:
+            diffs = json.loads(preview["diffs_json"]) or []
+        except (json.JSONDecodeError, TypeError):
+            diffs = []
+
+        br = {}
+        try:
+            br = json.loads(preview["blast_radius_json"]) or {}
+        except (json.JSONDecodeError, TypeError):
+            pass
+        target_ids = br.get("target_ids", [])
+
+        # Which records were canary / expand
+        canary_ids: set = set()
+        expand_ids: set = set()
+        for ex in conn.execute(
+            "SELECT phase, subset_ids_json FROM executions WHERE action_id=?",
+            (action_id,)
+        ).fetchall():
+            try:
+                ids = json.loads(ex["subset_ids_json"]) or []
+            except (json.JSONDecodeError, TypeError):
+                ids = []
+            if ex["phase"] == "canary":
+                canary_ids = set(ids)
+            elif ex["phase"] == "expand":
+                expand_ids = set(ids)
+
+        records = []
+        for d in diffs:
+            sid = d.get("sys_id")
+            if not sid:
+                continue
+            phase = (
+                "canary" if sid in canary_ids else
+                "expand" if sid in expand_ids else
+                "pending"
+            )
+            before = {
+                field: val.get("before")
+                for field, val in (d.get("fields") or {}).items()
+                if isinstance(val, dict)
+            }
+            records.append({
+                "sys_id": sid,
+                "number": d.get("number") or sid[:12],
+                "phase": phase,
+                "before": before,
+            })
+
+        # Build a single ServiceNow list-view URL for all target records
+        snow_instance = __import__("os").getenv("SNOW_INSTANCE", "").strip()
+        snow_list_url = None
+        if snow_instance and target_ids:
+            parts = "^OR".join(f"sys_id={sid}" for sid in target_ids if sid)
+            snow_list_url = f"https://{snow_instance}.service-now.com/incident_list.do?sysparm_query={parts}"
+
+        return {
+            "action_id": action_id,
+            "total": len(records),
+            "canary_count": len(canary_ids),
+            "expand_count": len(expand_ids),
+            "pending_count": len([r for r in records if r["phase"] == "pending"]),
+            "snow_list_url": snow_list_url,
+            "records": records,
+        }
+
+
+@router.get("/actions/{action_id}/record-timeline")
+def get_record_timeline(action_id: str, org_id: str = Depends(authenticate)):
+    """
+    Returns a per-record before/during/after timeline for the action.
+
+    For each record in the blast radius:
+      - before:   field values at time of preview (real values from the live system)
+      - after:    confirmed field values after execution (from connector's response)
+      - phase:    canary / expand / protected / blocked
+      - verified: True when the connector returned real before/after snapshots
+
+    This is the "trust but verify" endpoint — it shows exactly what changed,
+    where it came from, and lets you cross-check against the live system.
+    """
+    with get_db() as conn:
+        action = conn.execute(
+            "SELECT * FROM actions WHERE action_id=? AND org_id=?",
+            (action_id, org_id)
+        ).fetchone()
+        if not action:
+            raise HTTPException(404, "Action not found")
+
+        preview = conn.execute(
+            "SELECT * FROM previews WHERE action_id=?", (action_id,)
+        ).fetchone()
+
+        params = json.loads(action["params_json"])
+        changes_intended = list(params.get("changes", {}).keys())
+
+        # Build diff lookup from preview: sys_id -> diff
+        diffs = []
+        if preview:
+            try:
+                diffs = json.loads(preview["diffs_json"]) or []
+            except (json.JSONDecodeError, TypeError):
+                diffs = []
+        diff_map = {d.get("sys_id"): d for d in diffs if isinstance(d, dict)}
+
+        # Build execution result lookup: sys_id -> {result, phase}
+        exec_map: dict = {}
+        for ex in conn.execute(
+            "SELECT * FROM executions WHERE action_id=? ORDER BY created_at",
+            (action_id,)
+        ).fetchall():
+            results = []
+            try:
+                results = json.loads(ex["results_json"]) or []
+            except (json.JSONDecodeError, TypeError):
+                results = []
+            for r in results:
+                if isinstance(r, dict) and r.get("sys_id"):
+                    exec_map[r["sys_id"]] = {"result": r, "phase": ex["phase"]}
+
+        is_blocked = action["status"] == "blocked"
+        records = []
+
+        for diff in diffs:
+            sid = diff.get("sys_id")
+            if not sid:
+                continue
+
+            exec_entry = exec_map.get(sid)
+            result = exec_entry["result"] if exec_entry else None
+
+            if is_blocked:
+                phase = "blocked"
+            elif exec_entry:
+                phase = exec_entry["phase"]
+            else:
+                phase = "protected"
+
+            # Before: from preview diff "before" values (captured from live system at query time)
+            before: dict = {}
+            for field, val in (diff.get("fields") or {}).items():
+                if isinstance(val, dict):
+                    before[field] = val.get("before")
+
+            # After: prefer real snapshot from connector, fall back to predicted preview value
+            after: dict = {}
+            verified = False
+            unexpected_fields: list = []
+
+            if result:
+                applied = set(result.get("changes_applied", []))
+                unexpected_fields = sorted(applied - set(changes_intended))
+
+                if result.get("after_snapshot"):
+                    # Real values confirmed by ServiceNow/Jira/etc API response
+                    after = dict(result["after_snapshot"])
+                    verified = True
+                    # Include unexpected fields in before/after
+                    if result.get("before_snapshot"):
+                        for f in unexpected_fields:
+                            if f not in before:
+                                before[f] = result["before_snapshot"].get(f)
+                            if f not in after:
+                                after[f] = result["after_snapshot"].get(f)
+                elif applied:
+                    # Execution happened but no snapshot — use predicted values
+                    for f in applied:
+                        if f in (diff.get("fields") or {}):
+                            after[f] = diff["fields"][f].get("after")
+            elif phase not in ("protected", "blocked"):
+                # Observed/dry-run path — use predicted values
+                for field, val in (diff.get("fields") or {}).items():
+                    if isinstance(val, dict):
+                        after[field] = val.get("after")
+
+            records.append({
+                "sys_id": sid,
+                "number": (result.get("number") if result else None) or diff.get("number") or sid[:12],
+                "phase": phase,
+                "before": before,
+                "after": after if phase not in ("protected", "blocked") else {},
+                "unchanged_before": before if phase == "protected" else {},
+                "unexpected_fields": unexpected_fields,
+                "verified": verified,
+                "success": result.get("success", False) if result else (phase == "protected"),
+                "error": result.get("error") if (result and not result.get("success")) else None,
+            })
+
+        # Summary counts
+        phase_counts = {"canary": 0, "expand": 0, "protected": 0, "blocked": 0}
+        for r in records:
+            phase_counts[r["phase"]] = phase_counts.get(r["phase"], 0) + 1
+
+        return {
+            "action_id": action_id,
+            "changes_intended": changes_intended,
+            "total_records": len(records),
+            "phase_counts": phase_counts,
+            "has_verified_snapshots": any(r["verified"] for r in records),
+            "records": records,
+        }
+
+
 @router.get("/actions/{action_id}/proof")
 def get_proof(action_id: str, org_id: str = Depends(authenticate)):
     """Return the proof receipt + signature + live verification result."""

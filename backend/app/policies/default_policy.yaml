@@ -3,7 +3,7 @@
 # Changing this file = new version = old approvals may not match.
 
 policy_id: default
-version: "1.0.0"
+version: "1.1.0"
 description: "Default governance policy for ServiceNow bulk updates"
 
 # Global thresholds used by checks and rules
@@ -40,7 +40,19 @@ rules:
     reason: "Target set contains P1 incidents which require manual handling"
     required_checks: []
 
-  # Rule 3: VIP callers need human approval
+  # Rule 3: P2 (High) incidents need human approval
+  - name: p2_approval_required
+    condition:
+      flag: has_p2
+      op: eq
+      value: true
+    decision: APPROVAL_REQUIRED
+    reason: "P2 (High priority) incidents present : Human approval required before execution"
+    required_checks:
+      - approval_bound
+      - no_p1_state_change
+
+  # Rule 5: VIP callers need human approval
   - name: vip_approval_required
     condition:
       flag: has_vip
@@ -52,7 +64,7 @@ rules:
       - approval_bound
       - no_vip_state_change
 
-  # Rule 4: Medium blast radius → canary first
+  # Rule 6: Medium blast radius → canary first
   - name: canary_for_medium_blast
     condition:
       field: blast_radius
@@ -65,7 +77,7 @@ rules:
       - only_intended_fields
       - error_rate_ok
 
-  # Rule 5: Small changes auto-approve
+  # Rule 7: Small changes auto-approve
   - name: auto_small_changes
     condition:
       field: blast_radius

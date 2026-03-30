@@ -4,8 +4,10 @@ Keystone MVP — FastAPI application entry point.
 Start with:
   uvicorn app.main:app --reload --port 8000
 """
-from fastapi import FastAPI
+import traceback
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,6 +17,7 @@ from app.routes.actions import router as actions_router
 from app.routes.policies import router as policies_router
 from app.routes.approve import router as approve_router
 from app.routes.slack import router as slack_router
+from app.routes.stats import router as stats_router
 
 app = FastAPI(
     title="Keystone",
@@ -34,6 +37,17 @@ app.include_router(actions_router)
 app.include_router(policies_router)
 app.include_router(approve_router)
 app.include_router(slack_router)
+app.include_router(stats_router)
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    """Log and return detail for any unhandled 500 so the cause is visible."""
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"{type(exc).__name__}: {str(exc)}"},
+    )
 
 
 @app.on_event("startup")

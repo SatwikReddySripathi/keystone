@@ -74,6 +74,43 @@ export async function fetchApprovers() {
   return res.json();
 }
 
+export async function comparePolicy(actionId: string, policyFile = "strict_policy.yaml") {
+  const res = await fetch(`${BASE}/v1/policies/compare`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ action_id: actionId, policy_file: policyFile }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to compare policies");
+  }
+  return res.json();
+}
+
+export async function fetchStats() {
+  const res = await fetch(`${BASE}/v1/stats`, { headers, cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to fetch stats");
+  return res.json();
+}
+
+export async function fetchConnectorUrl(): Promise<{ servicenow_url: string | null }> {
+  const res = await fetch(`${BASE}/v1/system/connector-url`, { headers, cache: "no-store" });
+  if (!res.ok) return { servicenow_url: null };
+  return res.json();
+}
+
+export async function fetchTargets(id: string) {
+  const res = await fetch(`${BASE}/v1/actions/${id}/targets`, { headers, cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to fetch targets");
+  return res.json();
+}
+
+export async function fetchRecordTimeline(id: string) {
+  const res = await fetch(`${BASE}/v1/actions/${id}/record-timeline`, { headers, cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to fetch record timeline");
+  return res.json();
+}
+
 export async function rerunAction(id: string) {
   const res = await fetch(`${BASE}/v1/actions/${id}/execute-from-dry-run`, {
     method: "POST",

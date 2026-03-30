@@ -39,20 +39,21 @@ def get_policy_hash(policy: dict) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()[:16]
 
 
-def evaluate_policy(preview: dict, approval: dict = None) -> dict:
+def evaluate_policy(preview: dict, approval: dict = None, policy_file: str = "default_policy.yaml") -> dict:
     """
     Evaluate policy rules against preview data.
 
     Input:
         preview: output from generate_preview()
         approval: optional {preview_hash, policy_version, approver: {...}}
+        policy_file: YAML filename in the policies directory (default: default_policy.yaml)
 
     Output: {
         policy_id, policy_version, decision, reasons,
         thresholds, required_checks, matched_rules
     }
     """
-    policy = load_policy()
+    policy = load_policy(policy_file)
     blast_radius = preview["blast_radius"]
     flags = preview["flags"]
 

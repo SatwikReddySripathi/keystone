@@ -152,7 +152,12 @@ class Keystone:
         payload = action.to_dict()
         payload["mode"] = mode
         resp = self._session.post(f"{self.base_url}/v1/run", json=payload)
-        resp.raise_for_status()
+        if not resp.ok:
+            try:
+                detail = resp.json().get("detail", resp.text)
+            except Exception:
+                detail = resp.text
+            raise RuntimeError(f"HTTP {resp.status_code}: {detail}")
         return KeystoneResult(resp.json())
 
     def get_action(self, action_id: str) -> dict:

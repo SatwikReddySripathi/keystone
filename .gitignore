@@ -1,37 +1,75 @@
-# Python
+# ──────────────────────────────────────────────
+# Keystone — .gitignore
+# ──────────────────────────────────────────────
+
+# ── Secrets & environment ──────────────────────
+.env
+.env.*
+!.env.example
+backend/.env
+ui/.env.local
+ui/.env*.local
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+
+# ── Database ───────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# ── Python ─────────────────────────────────────
 venv/
+.venv/
+env/
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+*.egg
 *.egg-info/
 dist/
 build/
-*.egg
-
-# Database
-*.db
-
-# Environment files with secrets
-backend/.env
-ui/.env.local
-
-# Node
-ui/node_modules/
-ui/.next/
-
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Test files
-backend/test_*.py
-
-# ngrok
-ngrok.exe
+.eggs/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+*.log
 
 # SDK build artifacts
 sdk/keystone.egg-info/
+sdk/dist/
+sdk/build/
+
+# ── Node / Next.js ─────────────────────────────
+ui/node_modules/
+ui/.next/
+ui/out/
+ui/.turbo/
+
+# ── Internal / dev-only files ──────────────────
+CLAUDE.md
+backend/test_*.py
+sdk/demo_real.py
+ngrok.exe
+*.ngrok-v3.yml
+
+# ── IDE ────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.cursor/
+
+# ── OS ─────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini

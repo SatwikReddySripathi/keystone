@@ -106,7 +106,7 @@ class ServiceNowSimulator(BaseConnector):
             diffs.append(diff)
         return diffs
 
-    def execute_update(self, sys_ids: list[str], changes: dict) -> list[dict]:
+    def execute_update(self, sys_ids: list[str], changes: dict, metadata: dict | None = None) -> list[dict]:
         """
         Apply changes to records. Returns per-record results.
 

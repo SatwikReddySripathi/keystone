@@ -1,0 +1,92 @@
+# Keystone Strict Governance Policy
+# Version 2.0.0 - Tighter thresholds, stricter rules.
+# Use POST /v1/policies/compare to see how this differs from the default.
+
+policy_id: strict
+version: "2.0.0"
+description: "Strict governance policy - lower thresholds, more conservative decisions"
+
+thresholds:
+  max_blast_radius: 10
+  max_error_rate: 0.05
+  canary_size: 5
+  canary_max_error_rate: 0.0
+
+rules:
+  # Rule 1: Hard limit - 10 records max before BLOCK
+  - name: blast_radius_limit_strict
+    condition:
+      field: blast_radius
+      op: gt
+      value: 10
+    decision: BLOCK
+    reason: "Blast radius {blast_radius} exceeds strict maximum of {threshold}"
+    required_checks: []
+
+  # Rule 2: Any state transition requires approval
+  - name: state_transition_requires_approval
+    condition:
+      flag: state_transition
+      op: eq
+      value: true
+    decision: APPROVAL_REQUIRED
+    reason: "State transitions always require human approval under strict policy"
+    required_checks:
+      - only_intended_fields
+      - no_vip_state_change
+      - no_p1_state_change
+
+  # Rule 3: P1 incidents are always blocked
+  - name: no_p1_incidents_strict
+    condition:
+      flag: has_p1
+      op: eq
+      value: true
+    decision: BLOCK
+    reason: "P1 incidents cannot be bulk-modified under strict policy"
+    required_checks: []
+
+  # Rule 4: P2 incidents are always blocked
+  - name: no_p2_incidents_strict
+    condition:
+      flag: has_p2
+      op: eq
+      value: true
+    decision: BLOCK
+    reason: "P2 incidents cannot be bulk-modified under strict policy"
+    required_checks: []
+
+  # Rule 5: VIP callers are always blocked (stricter than default APPROVAL_REQUIRED)
+  - name: no_vip_strict
+    condition:
+      flag: has_vip
+      op: eq
+      value: true
+    decision: BLOCK
+    reason: "VIP caller records cannot be bulk-modified under strict policy"
+    required_checks: []
+
+  # Rule 6: More than 3 records requires canary
+  - name: canary_for_small_batch
+    condition:
+      field: blast_radius
+      op: gt
+      value: 3
+    decision: CANARY
+    reason: "Blast radius {blast_radius} > 3 - canary required under strict policy"
+    required_checks:
+      - no_out_of_scope
+      - only_intended_fields
+      - error_rate_ok
+
+  # Rule 7: 3 or fewer records auto-approve
+  - name: auto_tiny_changes
+    condition:
+      field: blast_radius
+      op: lte
+      value: 3
+    decision: AUTO
+    reason: "Blast radius {blast_radius} within strict auto-approve threshold"
+    required_checks:
+      - no_out_of_scope
+      - only_intended_fields
