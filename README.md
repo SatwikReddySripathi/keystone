@@ -328,7 +328,7 @@ cd backend && python test_api.py && python test_canary.py && python test_proof.p
 # Run full demo
 cd sdk && python demo.py
 ```
-
+Not for commercial USE
 ---
 
 ## License
