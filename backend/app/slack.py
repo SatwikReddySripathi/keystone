@@ -11,10 +11,7 @@ import os
 import json
 import requests
 
-SLACK_WEBHOOK_URL = os.getenv(
-    "SLACK_WEBHOOK_URL",
-    "https://hooks.slack.com/services/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"
-)
+SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
 
 
 def post_approval_request(
@@ -164,6 +161,8 @@ def _post_approval_request_inner(
         ]
     }
 
+    if not SLACK_WEBHOOK_URL:
+        return False
     resp = requests.post(SLACK_WEBHOOK_URL, json=payload, timeout=5)
     return resp.status_code == 200
 
@@ -186,6 +185,8 @@ def post_approval_result(action_id: str, approver: str, approved: bool, status: 
         ]
     }
 
+    if not SLACK_WEBHOOK_URL:
+        return
     try:
         requests.post(SLACK_WEBHOOK_URL, json=payload, timeout=5)
     except Exception:
