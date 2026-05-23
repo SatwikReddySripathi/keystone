@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --ks-bg:         #fafafa; /* zinc-50 */
+    --ks-surface:    #ffffff;
+    --ks-surface-2:  #f4f4f5; /* zinc-100 */
+    --ks-hover:      #f4f4f5;
+    --ks-border:     #e4e4e7; /* zinc-200 */
+    --ks-border-sub: #f4f4f5; 
+    --ks-text:       #09090b; /* zinc-950 */
+    --ks-text2:      #52525b; /* zinc-600 */
+    --ks-text3:      #a1a1aa; /* zinc-400 */
+    --ks-primary:    #4f46e5; /* indigo-600 */
+  }
+
+  .dark {
+    --ks-bg:         #09090b; /* zinc-950 */
+    --ks-surface:    #18181b; /* zinc-900 */
+    --ks-surface-2:  #09090b; 
+    --ks-hover:      #27272a; /* zinc-800 */
+    --ks-border:     #27272a; /* zinc-800 */
+    --ks-border-sub: #18181b; 
+    --ks-text:       #fafafa; /* zinc-50 */
+    --ks-text2:      #a1a1aa; /* zinc-400 */
+    --ks-text3:      #52525b; /* zinc-600 */
+    --ks-primary:    #818cf8; /* indigo-400 */
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--ks-bg);
+    color: var(--ks-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Thin scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--ks-border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ks-text3); }
+
+  /* Focus ring */
+  *:focus-visible {
+    outline: 2px solid var(--ks-primary);
+    outline-offset: 2px;
+  }
+
+  *:focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+@layer utilities {
+  .bg-grid-pattern {
+    background-size: 40px 40px;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  }
+  .light .bg-grid-pattern {
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  }
+}

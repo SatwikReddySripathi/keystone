@@ -1,0 +1,91 @@
+# Keystone Email Governance Policy
+# Use this policy when connector = "email_generic".
+# Pass policy_file="email_policy.yaml" to evaluate_policy(), or configure
+# the workspace to use this policy as its override.
+
+policy_id: email
+version: "1.0.0"
+description: "Governance policy for AI agent outbound email sends"
+
+thresholds:
+  max_blast_radius: 100     # hard block above 100 recipients
+  canary_size: 2            # send to 2 recipients first as a canary check
+  canary_max_error_rate: 0.0
+
+# Decision priority: BLOCK(4) > APPROVAL_REQUIRED(3) > CANARY(2) > AUTO(1)
+# Strictest matching rule wins. All matched reasons are shown in the UI.
+
+rules:
+  # Rule 1: Hard cap on recipient count
+  - name: too_many_recipients
+    condition:
+      field: blast_radius
+      op: gt
+      value: 100
+    decision: BLOCK
+    reason: "Recipient count {blast_radius} exceeds maximum of {threshold} - manual send required"
+    required_checks: []
+
+  # Rule 2: All-staff / company-wide sends always blocked for agent automation
+  - name: all_staff_block
+    condition:
+      flag: has_all_staff
+      op: eq
+      value: true
+    decision: BLOCK
+    reason: "Subject or body implies a company-wide send - not permitted for automated agents"
+    required_checks: []
+
+  # Rule 3: Sensitive content needs a human to approve before sending
+  - name: sensitive_keywords
+    condition:
+      flag: has_sensitive_keywords
+      op: eq
+      value: true
+    decision: APPROVAL_REQUIRED
+    reason: "Email contains sensitive keywords - human review required before sending"
+    required_checks: []
+
+  # Rule 4: External recipients (multiple domains) need approval
+  - name: external_recipients
+    condition:
+      flag: has_external_recipients
+      op: eq
+      value: true
+    decision: APPROVAL_REQUIRED
+    reason: "Email targets recipients outside the primary domain - approval required"
+    required_checks: []
+
+  # Rule 5: Large internal send needs approval
+  - name: large_send_approval
+    condition:
+      flag: has_large_send
+      op: eq
+      value: true
+    decision: APPROVAL_REQUIRED
+    reason: "Recipient list exceeds 20 - human approval required before bulk send"
+    required_checks: []
+
+  # Rule 6: Medium send (6-20 recipients) - canary two recipients first
+  - name: medium_send_canary
+    condition:
+      field: blast_radius
+      op: gt
+      value: 5
+    decision: CANARY
+    reason: "Sending to {blast_radius} recipients - delivering to 2 first as a canary check"
+    required_checks:
+      - no_out_of_scope
+      - only_intended_fields
+
+  # Rule 7: Small send (up to 5 recipients) - auto approved
+  - name: auto_small_send
+    condition:
+      field: blast_radius
+      op: lte
+      value: 5
+    decision: AUTO
+    reason: "Small send ({blast_radius} recipients) within auto-approve threshold"
+    required_checks:
+      - no_out_of_scope
+      - only_intended_fields
