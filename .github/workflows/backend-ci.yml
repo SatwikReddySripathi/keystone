@@ -53,27 +53,24 @@ jobs:
         # E9/F63/F7/F82 = syntax errors, undefined names — only fail on real bugs,
         # not style. Tighten later once codebase is clean.
 
-      - name: Run backend unit tests (script-style)
+      - name: Run unit tests (pure Python, no server required)
         env:
-          # Use a temp-file SQLite path, NOT ":memory:". The script-style
-          # tests call init_db() then later open a fresh connection via
-          # get_db(); with ":memory:" the second connection sees an empty
-          # database because SQLite drops an in-memory DB when the last
-          # connection closes. A real file path survives between calls.
+          # Temp-file SQLite path, NOT ":memory:". The script-style tests
+          # call init_db() then later open a fresh connection via get_db();
+          # with ":memory:" the second connection sees an empty database
+          # because SQLite drops an in-memory DB when the last connection
+          # closes. A real file path survives between calls.
           DATABASE_PATH: ${{ runner.temp }}/ci-action-marshall.db
           PROOF_SECRET: "ci-test-secret"
           DEFAULT_ORG_ID: "org_demo"
           DEFAULT_API_KEY: "am_test_demo_key_001"
         run: |
           set -e
-          # Start each CI run from a clean DB so tests aren't accreting state.
-          rm -f "$DATABASE_PATH"
+          # Each test starts from a clean DB for isolation.
           for f in test_db.py test_simulator.py test_preview.py test_policy.py \
-                   test_canary.py test_proof.py test_side_effect.py \
-                   test_api.py test_approval_flow.py; do
+                   test_canary.py test_proof.py test_side_effect.py; do
             if [ -f "$f" ]; then
               echo "── Running $f ──"
-              # Reset the DB before each test for isolation.
               rm -f "$DATABASE_PATH"
               python "$f"
             fi
@@ -83,23 +80,42 @@ jobs:
         working-directory: sdk
         run: pytest -v
 
-      - name: Smoke test — start server and hit /health
+      - name: Integration tests — start server, hit /health, run API tests
         env:
+          DATABASE_PATH: ${{ runner.temp }}/ci-action-marshall.db
           PROOF_SECRET: "ci-test-secret"
           DEFAULT_ORG_ID: "org_demo"
           DEFAULT_API_KEY: "am_test_demo_key_001"
+          # Disable Slack — these tests must not attempt outbound calls.
+          SLACK_WEBHOOK_URL: ""
         run: |
+          set -e
+          # Fresh DB for the server's lifetime.
+          rm -f "$DATABASE_PATH"
+
+          # Start the backend in the background and remember to kill it
+          # regardless of test outcome.
           uvicorn app.main:app --port 8000 &
           SERVER_PID=$!
-          # wait up to 15s for the server to come up
+          trap "kill $SERVER_PID 2>/dev/null || true" EXIT
+
+          # Wait up to 15s for the server to become healthy.
           for i in $(seq 1 15); do
             if curl -fsS http://127.0.0.1:8000/health > /dev/null; then
               echo "Backend is up"
-              kill $SERVER_PID
-              exit 0
+              break
             fi
             sleep 1
+            if [ "$i" = "15" ]; then
+              echo "Backend never became healthy"
+              exit 1
+            fi
           done
-          echo "Backend never became healthy"
-          kill $SERVER_PID || true
-          exit 1
+
+          # HTTP-based tests run against the live server.
+          for f in test_api.py test_approval_flow.py; do
+            if [ -f "$f" ]; then
+              echo "── Running $f ──"
+              python "$f"
+            fi
+          done
