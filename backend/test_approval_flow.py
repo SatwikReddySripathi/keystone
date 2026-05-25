@@ -37,14 +37,18 @@ assert data["status"] == "awaiting_approval", f"Expected awaiting_approval, got 
 print("   Action is awaiting approval")
 
 # ── Step 2: Approve it ──
+# EMP001 = Sarah Chen, admin (authorized_tools='*'), seeded by init_db().
+# Send only the fields ApproveRequest accepts — approver_name is looked up
+# from the DB, not passed in.
 print(f"\n=== STEP 2: Approve action {action_id} ===")
 approve_resp = requests.post(f"{BASE}/v1/actions/{action_id}/approve", headers=H, json={
-    "approver_id": "sarah-ops-lead",
-    "approver_name": "Sarah Chen (Ops Lead)",
+    "employee_id": "EMP001",
     "channel": "slack",
 })
+approve_resp.raise_for_status()
 approve_data = approve_resp.json()
 print(f"  Approved: {approve_data['approved']}")
+print(f"  Approver: {approve_data['approver_name']}")
 print(f"  Message:  {approve_data['message']}")
 assert approve_data["approved"]
 print("   Approval recorded")
