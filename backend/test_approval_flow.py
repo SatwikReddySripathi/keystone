@@ -10,10 +10,15 @@ BASE = "http://localhost:8000"
 H = {"X-API-Key": "am_test_demo_key_001", "Content-Type": "application/json"}
 
 # ── Step 1: Submit action that requires approval ──
+# Action is bound to ws_platform so EMP001 (a seeded admin of that workspace)
+# has standing to approve it. The permission model in can_approve_action
+# requires either agent ownership or workspace membership — an action with
+# no workspace context cannot be approved by anyone.
 print("=== STEP 1: Submit action with VIP records ===")
 resp = requests.post(f"{BASE}/v1/run", headers=H, json={
     "tool": "servicenow",
     "action_type": "bulk_update",
+    "workspace_id": "ws_platform",
     "params": {
         "connector": "servicenow_sim",
         "query": {
