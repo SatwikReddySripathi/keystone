@@ -1,0 +1,20 @@
+{
+  "tool": "servicenow",
+  "action_type": "bulk_update",
+  "environment": "simulation",
+  "actor": {
+    "id": "incident-triage-agent",
+    "name": "Incident Triage Agent",
+    "type": "agent"
+  },
+  "params": {
+    "connector": "servicenow_sim",
+    "query": {
+      "state": "open",
+      "priority": { "op": "in", "value": ["P1"] }
+    },
+    "changes": {
+      "state": "resolved"
+    }
+  }
+}

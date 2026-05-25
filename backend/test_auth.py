@@ -15,7 +15,7 @@ def check_key(api_key: str) -> str:
     return row["org_id"] if row else None
 
 # Test valid key
-result = check_key("ks_test_demo_key_001")
+result = check_key("am_test_demo_key_001")
 print(f"Valid key -> org_id: {result}")
 
 # Test invalid key

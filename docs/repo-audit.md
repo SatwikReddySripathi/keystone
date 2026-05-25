@@ -1,25 +1,25 @@
-# Keystone Repo Audit
+# Action Marshall Repo Audit
 
 > Audit date: 2026-05-22
 > Auditor: Claude Code (acting as senior open-source infra engineer)
-> Scope: full read of `keystone/` at HEAD on 2026-05-22
+> Scope: full read of `action_marshall/` at HEAD on 2026-05-22
 > Output of: Phase 1 in `CLAUDE.md`
 
 ---
 
 ## Executive Summary
 
-Keystone is a working MVP of action-level release control for AI agents, built around a real action lifecycle (preview → policy → approval → canary → checks → proof). The backend is competent: FastAPI + SQLite, ~17-table schema, HMAC-signed proof receipts, pluggable connector interface, working Slack approval flow, a Next.js approval/audit dashboard, and runnable demo scripts.
+Action Marshall is a working MVP of action-level release control for AI agents, built around a real action lifecycle (preview → policy → approval → canary → checks → proof). The backend is competent: FastAPI + SQLite, ~17-table schema, HMAC-signed proof receipts, pluggable connector interface, working Slack approval flow, a Next.js approval/audit dashboard, and runnable demo scripts.
 
 It is not yet a public-grade open-source infrastructure project. The biggest blockers are not engineering depth — they are repo hygiene and SDK shape:
 
 1. **Real secrets are committed.** `backend/.env` contains a live Slack webhook URL and live ServiceNow admin credentials (instance name, user, plaintext password — values redacted from this document). These must be rotated and purged from the repo before this can go public.
-2. **The SDK shape does not match the positioning.** The product positioning is "wrap actions, not rebuild agents." Today the SDK exposes a `Keystone` client and dataclass-based `Action`, with no `ks.wrap(...)`, no `wrap_function`, no `wrap_tool`, no framework adapters (LangChain, LangGraph, CrewAI, AutoGen, MCP, LlamaIndex, OpenAI). The drop-in story doesn't exist yet.
-3. **Packaging is on `setup.py` only** with package name `keystone-governance`. The CLAUDE.md target is `keystone-ai` (or `keystone-agent-control`) with `pyproject.toml`, `py.typed`, and optional extras for each framework.
-4. **No CLI, no LICENSE, no CONTRIBUTING.md, no SECURITY.md, no CHANGELOG.md, no `docs/`** (this file creates the folder). Several stale or sensitive files are committed: `venv/`, `keystone.db` (250 KB), `pitch_deck.pptx/.html`, `build_pitch_deck.py`, `CLAUDE_v1.md`.
+2. **The SDK shape does not match the positioning.** The product positioning is "wrap actions, not rebuild agents." Today the SDK exposes a `Action Marshall` client and dataclass-based `Action`, with no `ks.wrap(...)`, no `wrap_function`, no `wrap_tool`, no framework adapters (LangChain, LangGraph, CrewAI, AutoGen, MCP, LlamaIndex, OpenAI). The drop-in story doesn't exist yet.
+3. **Packaging is on `setup.py` only** with package name `action-marshall`. The CLAUDE.md target is `action-marshall` (or `action_marshall-agent-control`) with `pyproject.toml`, `py.typed`, and optional extras for each framework.
+4. **No CLI, no LICENSE, no CONTRIBUTING.md, no SECURITY.md, no CHANGELOG.md, no `docs/`** (this file creates the folder). Several stale or sensitive files are committed: `venv/`, `action_marshall.db` (250 KB), `pitch_deck.pptx/.html`, `build_pitch_deck.py`, `CLAUDE_v1.md`.
 5. **Tests are runnable scripts, not pytest.** They work and CI runs them, but they don't feel like a project a contributor would extend.
 
-Once these are addressed, Keystone has a credible Level 1 (Public-Demo Ready) story and most of a Level 2 (Self-Host Ready) story. It is **not** Level 3 (Package Ready) and is far from Level 4 (Hosted SaaS Ready).
+Once these are addressed, Action Marshall has a credible Level 1 (Public-Demo Ready) story and most of a Level 2 (Self-Host Ready) story. It is **not** Level 3 (Package Ready) and is far from Level 4 (Hosted SaaS Ready).
 
 Recommended public-readiness score (today): **4 / 10.** With Phase 2–6 work as described in `CLAUDE.md`, it can reach 7–8 / 10 — enough to publish, demo, and onboard early users.
 
@@ -28,7 +28,7 @@ Recommended public-readiness score (today): **4 / 10.** With Phase 2–6 work as
 ## Current Repo Structure
 
 ```text
-keystone/
+action_marshall/
 ├── CLAUDE.md                       # current build instructions (this audit's source of truth)
 ├── CLAUDE_v1.md                    # previous version of instructions — stale, gitignored
 ├── README.md                       # product README, accurate to current impl
@@ -43,7 +43,7 @@ keystone/
 │   ├── .env.example
 │   ├── Dockerfile                  # python:3.11-slim + gunicorn/uvicorn
 │   ├── requirements.txt
-│   ├── keystone.db                 # 250 KB committed sqlite database
+│   ├── action_marshall.db                 # 250 KB committed sqlite database
 │   ├── test_*.py                   # 14 script-style tests at root
 │   └── app/
 │       ├── main.py                 # FastAPI app, CORS, 8 routers, /health
@@ -58,12 +58,12 @@ keystone/
 │       └── routes/                 # actions, approve, audit, policies, auth, workspaces,
 │                                   # agents, connections, slack, stats, access, db
 ├── sdk/
-│   ├── setup.py                    # package = keystone-governance, v0.1.0
+│   ├── setup.py                    # package = action-marshall, v0.1.0
 │   ├── README.md                   # SDK usage
-│   ├── keystone/                   # importable package
-│   │   ├── __init__.py             # exports Keystone, Action, ActionParams, Actor, Approver,
-│   │   │                           # Approval, KeystoneResult
-│   │   └── client.py               # Keystone client wrapping requests
+│   ├── action_marshall/                   # importable package
+│   │   ├── __init__.py             # exports Action Marshall, Action, ActionParams, Actor, Approver,
+│   │   │                           # Approval, MarshallResult
+│   │   └── client.py               # Action Marshall client wrapping requests
 │   ├── demo.py                     # 4-scenario product demo
 │   ├── demo_3min.py / demo_recording.py / demo_real.py / launch_demo.py
 │   ├── investor_workflow_demo.py
@@ -89,8 +89,8 @@ Notable absences:
 - No `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CHANGELOG.md`, `RELEASE.md`.
 - No top-level `.env.example`.
 - No `pyproject.toml` (anywhere).
-- No `keystone` CLI entry point.
-- No framework adapters under `sdk/keystone/adapters/`.
+- No `action-marshall` CLI entry point.
+- No framework adapters under `sdk/action_marshall/adapters/`.
 - No Alembic / migrations — `db.py` creates tables in-process on startup.
 
 ---
@@ -156,9 +156,9 @@ The substantive product features that exist and run today:
 
 **SDK (current shape).**
 
-- Importable as `from keystone import Keystone, Action, ActionParams, Actor, Approver, Approval, KeystoneResult`.
-- `Keystone(api_key, base_url).run(Action(...))` hits the backend.
-- `KeystoneResult` exposes `action_id`, `status`, `preview`, `decision`, `breaker`, `proof_available`, `proof_url`, `ui_urls`, `is_blocked`, etc.
+- Importable as `from action_marshall import Action Marshall, Action, ActionParams, Actor, Approver, Approval, MarshallResult`.
+- `Action Marshall(api_key, base_url).run(Action(...))` hits the backend.
+- `MarshallResult` exposes `action_id`, `status`, `preview`, `decision`, `breaker`, `proof_available`, `proof_url`, `ui_urls`, `is_blocked`, etc.
 
 ---
 
@@ -166,13 +166,13 @@ The substantive product features that exist and run today:
 
 Relative to the public-launch target in `CLAUDE.md`:
 
-**SDK shape.** No `ks.wrap()`, `wrap_function`, `wrap_tool`, `preview`, or `verify_receipt`. Client class is `Keystone`, target is `KeystoneClient` (or alias both). No mode flags (`enforce` vs `preview`). No `risk_level`, `require_approval`, `on_denied` knobs documented.
+**SDK shape.** No `ks.wrap()`, `wrap_function`, `wrap_tool`, `preview`, or `verify_receipt`. Client class is `Action Marshall`, target is `MarshallClient` (or alias both). No mode flags (`enforce` vs `preview`). No `risk_level`, `require_approval`, `on_denied` knobs documented.
 
-**Packaging.** No `pyproject.toml`. Package name is `keystone-governance`; target is `keystone-ai`. No `py.typed`. No optional extras for frameworks. No PyPI publish workflow. Local install path (`pip install -e .`) and build (`python -m build`) are not documented.
+**Packaging.** No `pyproject.toml`. Package name is `action-marshall`; target is `action-marshall`. No `py.typed`. No optional extras for frameworks. No PyPI publish workflow. Local install path (`pip install -e .`) and build (`python -m build`) are not documented.
 
 **Framework adapters.** None exist for LangChain, LangGraph, CrewAI, AutoGen, MCP, LlamaIndex, or raw OpenAI tool calling. This is the single biggest gap between current state and the "wrap actions, not rebuild agents" positioning.
 
-**CLI.** No `keystone` command. No `keystone init`, `keystone preview`, `keystone run`, `keystone receipts list / verify`.
+**CLI.** No `action-marshall` command. No `action-marshall init`, `action-marshall preview`, `action-marshall run`, `action-marshall receipts list / verify`.
 
 **Migrations.** No Alembic, no migration files. Schema is created in-process at startup from `db.py`. This is OK for sqlite demos but blocks any serious Postgres path.
 
@@ -203,7 +203,7 @@ These must be resolved before the repo is publicly visible:
 1. **Rotate and remove committed secrets.** `backend/.env` is committed with a real Slack webhook URL, real ServiceNow instance name, and real admin credentials. Rotate every one of these, delete the file, and confirm `.gitignore` keeps it out. Because git history likely contains them, rewriting history or treating those credentials as permanently compromised is required.
 2. **Add a `LICENSE`.** No OSS project is publishable without one. MIT or Apache-2.0 are both reasonable; Apache-2.0 gives explicit patent grant which is usually preferred for infra.
 3. **Delete `venv/` from the repo** and verify `.gitignore` covers it.
-4. **Delete `keystone.db` from the repo** (regenerate on first run) and gitignore `*.db`.
+4. **Delete `action_marshall.db` from the repo** (regenerate on first run) and gitignore `*.db`.
 5. **Decide whether the pitch deck files belong in the public repo.** If not, move them to a private location. If yes, at least move them under `assets/` or `docs/pitch/` and remove `build_pitch_deck.py` if it's purely internal.
 6. **Delete `CLAUDE_v1.md`** — it's marked internal and is stale.
 7. **Cut the README claims down to what actually works.** The current README is broadly honest, but it should be updated to reflect the new SDK shape after Phase 4 and to clearly label what's implemented vs roadmap.
@@ -219,10 +219,10 @@ After these, the repo is publishable. The remaining gaps (SDK shape, adapters, C
 | Item | Current | Target |
 |------|---------|--------|
 | Package manifest | `setup.py` only | `pyproject.toml` with PEP 621 metadata |
-| Package name | `keystone-governance` | `keystone-ai` (or `keystone-agent-control`) |
-| Import name | `keystone` | `keystone` ✓ |
+| Package name | `action-marshall` | `action-marshall` (or `action_marshall-agent-control`) |
+| Import name | `action-marshall` | `action-marshall` ✓ |
 | Version | `0.1.0` | `0.1.0` ✓ |
-| Client class | `Keystone` | `KeystoneClient` (keep `Keystone` as alias) |
+| Client class | `Action Marshall` | `MarshallClient` (keep `Action Marshall` as alias) |
 | `wrap`, `wrap_tool`, `wrap_function` | not implemented | implement |
 | `preview()` method | not implemented | implement |
 | `verify_receipt()` | not implemented | implement |
@@ -255,7 +255,7 @@ The single highest-leverage SDK change is adding `ks.wrap(existing_tool)` with s
 | Self-hosting doc | missing (`docs/self-hosting.md`) |
 | Deployment doc | missing (`docs/deployment.md`) |
 | Worker process | not needed yet — all synchronous |
-| Persistent volume | yes (`keystone-data`) |
+| Persistent volume | yes (`action-marshall-data`) |
 | Secrets via env | yes for backend; UI uses `NEXT_PUBLIC_*` which is correct for client-side |
 
 The biggest self-hosting gap is the lack of Postgres support. For a Level 2 launch, that's acceptable as long as it's flagged honestly: "Self-host on sqlite for local and small teams. Postgres support is planned."
@@ -269,7 +269,7 @@ The biggest self-hosting gap is the lack of Postgres support. For a Level 2 laun
 Decision in `CLAUDE.md` is correct: do not overbuild Level 4 yet. The repo should:
 
 - Add a `docs/hosted.md` explaining the hosted option and a `[Join the hosted waitlist](#)` placeholder link in README.
-- Avoid any language implying hosted Keystone exists as a service.
+- Avoid any language implying hosted Action Marshall exists as a service.
 
 That is sufficient for now.
 
@@ -280,7 +280,7 @@ That is sufficient for now.
 **Critical findings.**
 
 1. `backend/.env` is committed with real secrets: a live Slack webhook URL, a real ServiceNow instance, and real admin credentials (values redacted from this document). These must be treated as compromised, rotated, and purged.
-2. `keystone.db` (250 KB) is committed. It contains seeded data — review for any PII before public release; assume it's compromised even if seed-only.
+2. `action_marshall.db` (250 KB) is committed. It contains seeded data — review for any PII before public release; assume it's compromised even if seed-only.
 3. `venv/` is committed. No secrets there directly, but it pollutes the repo and could leak local-machine paths.
 
 **Positive practices observed.**
@@ -298,7 +298,7 @@ That is sufficient for now.
 
 - No `SECURITY.md` — no disclosure path.
 - Rate limit is in-memory, so multi-worker `gunicorn` (which the Dockerfile uses, `--workers 2`) gives inconsistent enforcement. Should be `--workers 1` until backed by Redis, or move to Redis.
-- `PROOF_SECRET` defaults to `keystone-dev-secret-change-in-production` in `.env.example`. Fail-loud behavior if it's left at default in non-dev would be safer than fail-silent.
+- `PROOF_SECRET` defaults to `action_marshall-dev-secret-change-in-production` in `.env.example`. Fail-loud behavior if it's left at default in non-dev would be safer than fail-silent.
 - No threat model in docs.
 - No secret-scanning config (no `.gitleaks` / `trufflehog` workflow).
 
@@ -389,9 +389,9 @@ This is the recommended ordering of `CLAUDE.md`'s phases for this specific repo 
 1. **Phase 1 (this document).** Complete.
 2. **P0 hygiene burst** (small, fast — see P0 list below). Do this immediately after the audit. This is the prerequisite to the repo being safe to make public, and it's blockingly small.
 3. **Phase 2 — repo structure.** Add `docs/`, `examples/`, `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`, `RELEASE.md`, top-level `.env.example`. Decide whether to move `sdk/` to `packages/python-sdk/` (likely yes, but only if every import path and the GitHub Action paths are updated atomically).
-4. **Phase 4 — SDK / package.** This is the highest-leverage product change. Add `pyproject.toml`, rename to `keystone-ai`, add `ks.wrap()` + `wrap_function()` + `preview()` + `verify_receipt()`, add `py.typed`, add optional extras structure (the extras can declare deps without an adapter file yet). Add SDK tests.
+4. **Phase 4 — SDK / package.** This is the highest-leverage product change. Add `pyproject.toml`, rename to `action-marshall`, add `ks.wrap()` + `wrap_function()` + `preview()` + `verify_receipt()`, add `py.typed`, add optional extras structure (the extras can declare deps without an adapter file yet). Add SDK tests.
 5. **Phase 3 — README rewrite.** Once the SDK shape is right, rewrite the README to match it. Doing this before Phase 4 means rewriting twice.
-6. **Phase 5 — CLI.** `keystone init`, `keystone preview`, `keystone run`, `keystone receipts list`, `keystone receipts verify`. Typer or Click. Small surface.
+6. **Phase 5 — CLI.** `action-marshall init`, `action-marshall preview`, `action-marshall run`, `action-marshall receipts list`, `action-marshall receipts verify`. Typer or Click. Small surface.
 7. **Phase 6 — Docker / self-hosting.** Mostly already works; add `/ready`, top-level `.env.example`, `docs/self-hosting.md`, `docs/deployment.md`. Decide on Postgres path (probably defer to roadmap with a clear note).
 8. **Phase 7 — GitHub Actions.** Add `publish-python.yml` (tag-gated, trusted publishing), `docker.yml`, `dependabot.yml`.
 9. **Phase 8 — versioning / release process.** `CHANGELOG.md`, `RELEASE.md`, conventional commits + semver guidance.
@@ -414,7 +414,7 @@ Must fix before the repo goes public.
 - **P0-1.** Rotate the committed Slack webhook URL. Treat as compromised.
 - **P0-2.** Rotate the committed ServiceNow admin password and rebuild the dev instance if needed. Treat as compromised.
 - **P0-3.** Delete `backend/.env` from the working tree, confirm `.gitignore` covers `**/.env`, and remove `.env` from git history (or commit a fresh history, depending on how much history needs to survive).
-- **P0-4.** Delete `backend/keystone.db`. Gitignore `*.db`. Regenerate on first run.
+- **P0-4.** Delete `backend/action_marshall.db`. Gitignore `*.db`. Regenerate on first run.
 - **P0-5.** Delete `venv/`. Confirm `.gitignore` covers it.
 - **P0-6.** Add a `LICENSE` (Apache-2.0 recommended for infra; MIT also fine).
 - **P0-7.** Delete `CLAUDE_v1.md`.
@@ -424,7 +424,7 @@ Must fix before the repo goes public.
 - **P0-11.** Add `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1 is the standard pick).
 - **P0-12.** Add `docs/` with at minimum `quickstart.md`, `self-hosting.md`, `architecture.md`, `security.md`. (This audit creates `docs/repo-audit.md`; the rest are Phase 13.)
 - **P0-13.** Switch Dockerfile to `--workers 1` (or document that multi-worker rate-limit is best-effort until Redis is wired). Current setting silently degrades the in-memory limiter.
-- **P0-14.** Add `pyproject.toml` and rename the package to `keystone-ai`. Add `py.typed`. (This is also Phase 4 — listed here because the current name + manifest will confuse anyone who finds the repo before Phase 4 lands.)
+- **P0-14.** Add `pyproject.toml` and rename the package to `action-marshall`. Add `py.typed`. (This is also Phase 4 — listed here because the current name + manifest will confuse anyone who finds the repo before Phase 4 lands.)
 - **P0-15.** Add `ks.wrap()` and `ks.wrap_function()` to the SDK with sensible defaults. Without this, the positioning does not match the package. (Also Phase 4.)
 - **P0-16.** Add a "Works with your existing agent stack" section to the README. (Also Phase 3.)
 - **P0-17.** Add an explicit "available now / experimental / planned / roadmap" labeling convention to every features table in the README and docs.
@@ -435,7 +435,7 @@ Must fix before the repo goes public.
 
 Should fix soon after public launch.
 
-- **P1-1.** Add `keystone` CLI (Phase 5).
+- **P1-1.** Add `action-marshall` CLI (Phase 5).
 - **P1-2.** Add `/ready` endpoint.
 - **P1-3.** Add at least one framework adapter — LangChain first.
 - **P1-4.** Add `examples/` with `minimal-agent/`, `servicenow-demo/`, `langchain-demo/`, `denied-action/`, `safe-action/`, each with its own README + sample action JSON + expected output.
@@ -473,7 +473,7 @@ Nice to have.
 These are honesty-marker rules. The README and docs must not state any of the following as currently true:
 
 - "Production-ready." Today: public-demo ready, almost self-host ready.
-- "Hosted Keystone is live." Today: waitlist only, placeholder link.
+- "Hosted Action Marshall is live." Today: waitlist only, placeholder link.
 - "Works with LangChain / LangGraph / CrewAI / AutoGen / MCP / LlamaIndex." Today: works with raw Python only. Frameworks are roadmap until adapters ship and have at least one example.
 - "Postgres supported." Today: sqlite only.
 - "Battle-tested" / "Trusted by N companies" / any specific customer logo. Today: no customers, no production deployments.

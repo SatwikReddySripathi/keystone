@@ -1,6 +1,6 @@
-# Contributing to Keystone
+# Contributing to Action Marshall
 
-Thanks for your interest in Keystone. Keystone is action-level release control for AI agents, and we want it to be easy to adopt, easy to extend, and honest about what works today.
+Thanks for your interest in Action Marshall. Action Marshall is action-level release control for AI agents, and we want it to be easy to adopt, easy to extend, and honest about what works today.
 
 This guide explains how to set up a development environment, how to propose changes, and how we run releases.
 
@@ -14,7 +14,7 @@ Participation in this project is governed by the [Code of Conduct](CODE_OF_CONDU
 - **Request a feature.** Open an issue describing the use case and why existing options do not work.
 - **Improve the docs.** Documentation lives in `docs/` and in the README. Small docs PRs are very welcome.
 - **Add a connector.** Connectors live under `backend/app/connectors/`. See `base.py` for the abstract interface.
-- **Add a framework adapter.** Adapters live under `sdk/keystone/adapters/`. Each must declare its framework dependency as an optional extra.
+- **Add a framework adapter.** Adapters live under `sdk/action_marshall/adapters/`. Each must declare its framework dependency as an optional extra.
 - **Fix a bug, write a test, or polish a rough edge.**
 
 For security vulnerabilities, please follow [SECURITY.md](SECURITY.md) instead of opening a public issue.
@@ -58,7 +58,7 @@ cd sdk
 pip install -e .
 ```
 
-This installs the `keystone` package in editable mode. You can then `from keystone import Keystone, Action` in any Python script.
+This installs the `action-marshall` package in editable mode. You can then `from action_marshall import Action Marshall, Action` in any Python script.
 
 ## Tests
 
@@ -109,7 +109,7 @@ Example: `feat(sdk): add ks.wrap() for plain Python tools`
 
 ## Honest Documentation
 
-Keystone documentation uses an explicit labeling convention. When you write or update docs, please use one of:
+Action Marshall documentation uses an explicit labeling convention. When you write or update docs, please use one of:
 
 - `available now` — works in the current release.
 - `experimental` — works but the API may change without notice.

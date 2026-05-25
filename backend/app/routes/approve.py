@@ -253,7 +253,7 @@ def execute_action(action_id: str, org_id: str = Depends(authenticate)):
             (datetime.utcnow().isoformat(), action_id))
 
         actor = json.loads(action["actor_json"])
-        _meta = {"action_id": action_id, "actor_name": actor.get("name", "Keystone Agent")}
+        _meta = {"action_id": action_id, "actor_name": actor.get("name", "Action Marshall Agent")}
         canary_results = connector.execute_update(canary_ids, changes, metadata=_meta)
         canary_error_rate = len([r for r in canary_results if not r.get("success")]) / max(len(canary_results), 1)
         conn.execute("INSERT INTO executions (action_id, phase, subset_ids_json, results_json, error_rate) VALUES (?,?,?,?,?)",

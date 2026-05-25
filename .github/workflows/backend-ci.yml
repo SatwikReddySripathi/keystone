@@ -35,16 +35,16 @@ jobs:
           cache: 'pip'
           cache-dependency-path: |
             backend/requirements.txt
-            sdk/setup.py
+            sdk/pyproject.toml
 
       - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install SDK in editable mode
+      - name: Install SDK with dev extras
         working-directory: sdk
-        run: pip install -e .
+        run: pip install -e ".[dev]"
 
       - name: Lint with ruff
         run: |
@@ -53,12 +53,12 @@ jobs:
         # E9/F63/F7/F82 = syntax errors, undefined names — only fail on real bugs,
         # not style. Tighten later once codebase is clean.
 
-      - name: Run unit tests
+      - name: Run backend unit tests (script-style)
         env:
           DATABASE_PATH: ":memory:"
           PROOF_SECRET: "ci-test-secret"
           DEFAULT_ORG_ID: "org_demo"
-          DEFAULT_API_KEY: "ks_test_demo_key_001"
+          DEFAULT_API_KEY: "am_test_demo_key_001"
         run: |
           set -e
           for f in test_db.py test_simulator.py test_preview.py test_policy.py \
@@ -70,11 +70,15 @@ jobs:
             fi
           done
 
+      - name: Run SDK pytest suite
+        working-directory: sdk
+        run: pytest -v
+
       - name: Smoke test — start server and hit /health
         env:
           PROOF_SECRET: "ci-test-secret"
           DEFAULT_ORG_ID: "org_demo"
-          DEFAULT_API_KEY: "ks_test_demo_key_001"
+          DEFAULT_API_KEY: "am_test_demo_key_001"
         run: |
           uvicorn app.main:app --port 8000 &
           SERVER_PID=$!

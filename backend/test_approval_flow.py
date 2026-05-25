@@ -7,7 +7,7 @@ Test: full approval flow.
 import requests
 
 BASE = "http://localhost:8000"
-H = {"X-API-Key": "ks_test_demo_key_001", "Content-Type": "application/json"}
+H = {"X-API-Key": "am_test_demo_key_001", "Content-Type": "application/json"}
 
 # ── Step 1: Submit action that requires approval ──
 print("=== STEP 1: Submit action with VIP records ===")

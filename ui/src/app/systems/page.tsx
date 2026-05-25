@@ -78,7 +78,7 @@ export default function ConnectedSystemsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-ks-text">Connected Systems</h1>
           <p className="text-[13px] text-ks-text2 mt-1.5 max-w-2xl leading-relaxed">
-            Global directory of all SaaS platforms and internal tools connected to Keystone.
+            Global directory of all SaaS platforms and internal tools connected to Action Marshall.
             Monitor scopes, audit agent access, and identify over-privileged or high-risk connections.
           </p>
         </div>

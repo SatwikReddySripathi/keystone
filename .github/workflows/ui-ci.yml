@@ -45,5 +45,5 @@ jobs:
       - name: Build
         env:
           NEXT_PUBLIC_API_URL: "http://localhost:8000"
-          NEXT_PUBLIC_API_KEY: "ks_test_demo_key_001"
+          NEXT_PUBLIC_API_KEY: "am_test_demo_key_001"
         run: npm run build

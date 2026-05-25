@@ -1,6 +1,6 @@
 __pycache__
 *.pyc
 venv
-keystone.db
+action_marshall.db
 test_*.py
 .env

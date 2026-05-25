@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Keystone — 3-Minute Demo Setup Script
+Action Marshall — 3-Minute Demo Setup Script
 
 Runs 4 scenarios in order, pausing between each so you can
 switch to the browser and show the result live.
 
 Usage (while screen-recording):
-  Terminal 1:  cd backend && rm keystone.db && uvicorn app.main:app --reload --port 8000
+  Terminal 1:  cd backend && rm action_marshall.db && uvicorn app.main:app --reload --port 8000
   Terminal 2:  cd ui && npm run dev
   Terminal 3:  cd sdk && python demo_3min.py   ← run this one on camera
 
@@ -23,13 +23,13 @@ Open these tabs BEFORE recording:
 """
 import time
 import sys
-from keystone import Keystone, Action, ActionParams, Actor
+from action_marshall import MarshallClient, Action, ActionParams, Actor
 
 BASE_URL = "http://localhost:8000"
 UI_URL   = "http://localhost:3000"
-API_KEY  = "ks_test_demo_key_001"
+API_KEY  = "am_test_demo_key_001"
 
-ks = Keystone(base_url=BASE_URL, api_key=API_KEY)
+ks = MarshallClient(base_url=BASE_URL, api_key=API_KEY)
 
 ACTOR = Actor(id="incident-resolver-v2", name="Incident Resolver Agent")
 
@@ -65,7 +65,7 @@ def wait(msg, secs=0):
 
 
 # ─── Pre-flight ───────────────────────────────────────────────────────────────
-print("\n  Keystone 3-Minute Demo")
+print("\n  Action Marshall 3-Minute Demo")
 print("  ─────────────────────────────────────────")
 print("  Checking backend...")
 try:

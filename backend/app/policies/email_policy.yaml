@@ -1,4 +1,4 @@
-# Keystone Email Governance Policy
+# Action Marshall Email Governance Policy
 # Use this policy when connector = "email_generic".
 # Pass policy_file="email_policy.yaml" to evaluate_policy(), or configure
 # the workspace to use this policy as its override.

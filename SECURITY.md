@@ -1,10 +1,10 @@
 # Security Policy
 
-Keystone is action-level release control for AI agents. Because Keystone sits in the path of agent actions that change production systems, vulnerabilities in Keystone can have real-world impact. We take security reports seriously.
+Action Marshall is action-level release control for AI agents. Because Action Marshall sits in the path of agent actions that change production systems, vulnerabilities in Action Marshall can have real-world impact. We take security reports seriously.
 
 ## Supported Versions
 
-Keystone is currently pre-1.0. Until a `1.0.0` release ships:
+Action Marshall is currently pre-1.0. Until a `1.0.0` release ships:
 
 - Only the `main` branch and the latest tagged release are supported.
 - Security fixes are applied to `main` and backported to the latest tag if it is less than 30 days old.
@@ -35,22 +35,22 @@ We will credit reporters in the changelog and any security advisory unless you a
 
 In scope:
 
-- The Keystone backend API (`backend/`).
-- The Keystone Python SDK (`sdk/`).
-- The Keystone web UI (`ui/`).
+- The Action Marshall backend API (`backend/`).
+- The Action Marshall Python SDK (`sdk/`).
+- The Action Marshall web UI (`ui/`).
 - Official Docker images and `docker-compose.yaml`.
 - Example connectors that ship in this repo.
 
 Out of scope:
 
-- Third-party SaaS systems Keystone integrates with (ServiceNow, Jira, Slack, etc.). Report those to their vendors.
+- Third-party SaaS systems Action Marshall integrates with (ServiceNow, Jira, Slack, etc.). Report those to their vendors.
 - Customer-written policies that produce unexpected decisions.
-- Connector credentials managed outside Keystone.
-- The hosted Keystone product (when it exists, it will have its own security contact).
+- Connector credentials managed outside Action Marshall.
+- The hosted Action Marshall product (when it exists, it will have its own security contact).
 
 ## Threat Model
 
-Keystone is designed to reduce risk from:
+Action Marshall is designed to reduce risk from:
 
 - Uncontrolled bulk actions taken by agents.
 - Over-permissioned agents reaching tools they should not.
@@ -59,18 +59,18 @@ Keystone is designed to reduce risk from:
 - Missing audit evidence after an incident.
 - Action-level compliance gaps.
 
-Keystone is **not** designed to defend against:
+Action Marshall is **not** designed to defend against:
 
 - Model hallucination by itself.
 - Compromise of the customer's identity provider.
 - A malicious infrastructure administrator with direct database or signing-key access.
 - Bad policies written by the customer.
-- Connector credentials leaked outside Keystone.
-- Compromise of the customer's application code that calls Keystone.
+- Connector credentials leaked outside Action Marshall.
+- Compromise of the customer's application code that calls Action Marshall.
 
 ## Cryptographic Material
 
-Keystone signs audit receipts with HMAC-SHA256 using a secret from the `PROOF_SECRET` environment variable. The same secret is required to verify receipts. Do not commit this value to source control. In production, generate a long random value and store it in your secret manager.
+Action Marshall signs audit receipts with HMAC-SHA256 using a secret from the `PROOF_SECRET` environment variable. The same secret is required to verify receipts. Do not commit this value to source control. In production, generate a long random value and store it in your secret manager.
 
 ## Disclosures
 

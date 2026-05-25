@@ -1,5 +1,5 @@
 """
-Keystone database layer.
+Action Marshall database layer.
 
 10 tables that track the full lifecycle of every governed action.
 Think of it as: an action flows through stages, and each stage
@@ -26,7 +26,7 @@ load_dotenv()
 # Always resolve relative to the backend/ directory so the DB lands in the
 # right place regardless of which directory uvicorn is invoked from.
 _BACKEND_DIR = Path(__file__).parent.parent
-DB_PATH = os.getenv("DATABASE_PATH") or str(_BACKEND_DIR / "keystone.db")
+DB_PATH = os.getenv("DATABASE_PATH") or str(_BACKEND_DIR / "action_marshall.db")
 
 # ── Schema ──────────────────────────────────────────
 # Read through each table — they follow the action lifecycle:
@@ -385,7 +385,7 @@ def init_db():
         (org_id, "Demo Organization")
     )
 
-    api_key = os.getenv("DEFAULT_API_KEY", "ks_test_demo_key_001")
+    api_key = os.getenv("DEFAULT_API_KEY", "am_test_demo_key_001")
     key_hash = hashlib.sha256(api_key.encode()).hexdigest()
     conn.execute(
         "INSERT OR IGNORE INTO api_keys (key_hash, org_id) VALUES (?, ?)",
@@ -398,11 +398,11 @@ def init_db():
     # it null so the mapping falls back to email.
     approvers = [
         # employee_id, name, email, password, designation, department, authorized_tools, is_admin, slack_user_id
-        ("EMP001", "Sarah Chen",      "sarah.chen@keystone.org", "sarah-admin",   "Senior Operations Lead", "Platform Engineering", "*",                1, None),
-        ("EMP002", "James Rodriguez", "james.r@keystone.org",    "james-admin",   "VP of Engineering",      "Engineering",          "*",                1, None),
-        ("EMP003", "Priya Patel",     "priya.p@keystone.org",    "priya-demo",    "IT Service Manager",     "IT Operations",        "servicenow",       0, None),
-        ("EMP004", "Michael Kim",     "michael.k@keystone.org",  "michael-demo",  "Security Analyst",       "Security",             "servicenow,jira",  0, None),
-        ("EMP005", "Lisa Wang",       "lisa.w@keystone.org",     "lisa-demo",     "Change Manager",         "Change Management",    "*",                0, None),
+        ("EMP001", "Sarah Chen",      "sarah.chen@action_marshall.org", "sarah-admin",   "Senior Operations Lead", "Platform Engineering", "*",                1, None),
+        ("EMP002", "James Rodriguez", "james.r@action_marshall.org",    "james-admin",   "VP of Engineering",      "Engineering",          "*",                1, None),
+        ("EMP003", "Priya Patel",     "priya.p@action_marshall.org",    "priya-demo",    "IT Service Manager",     "IT Operations",        "servicenow",       0, None),
+        ("EMP004", "Michael Kim",     "michael.k@action_marshall.org",  "michael-demo",  "Security Analyst",       "Security",             "servicenow,jira",  0, None),
+        ("EMP005", "Lisa Wang",       "lisa.w@action_marshall.org",     "lisa-demo",     "Change Manager",         "Change Management",    "*",                0, None),
     ]
     for emp_id, name, email, password, designation, department, tools, is_admin, slack_id in approvers:
         pw_hash = hashlib.sha256(password.encode()).hexdigest()
@@ -453,7 +453,7 @@ def init_db():
 
     # Seed demo agents — agent_id matches actor.id from the SDK
     agents = [
-        # ws_platform — triage-agent-v2 is the demo actor used by demo_recording.py
+        # ws_platform — triage-agent-v2 is the demo actor used by the demo scripts
         ("triage-agent-v2",      org_id, "ws_platform", "IT Triage Agent",
          "Bulk ServiceNow incident triage, reassignment, and resolution",
          "EMP001", "active", '{"tools":["servicenow"]}', 200),

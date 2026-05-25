@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Keystone — Transaction Governance",
+  title: "Action Marshall — Transaction Governance",
   description: "Govern every AI agent action before it reaches production.",
 };
 

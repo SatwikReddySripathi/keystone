@@ -110,10 +110,10 @@ def run_action(body: ActionInput, request: Request, org_id: str = Depends(authen
         # owner, and permissions. The first action still runs (subject to
         # policy) so an SDK integration doesn't deadlock on day one.
         #
-        # Set KEYSTONE_REQUIRE_PREREGISTERED_AGENTS=true to disable this and
+        # Set MARSHALL_REQUIRE_PREREGISTERED_AGENTS=true to disable this and
         # reject unknown agents outright — that's the right setting for
         # mature deployments where every agent must be admin-onboarded.
-        require_preregistered = os.getenv("KEYSTONE_REQUIRE_PREREGISTERED_AGENTS", "false").lower() == "true"
+        require_preregistered = os.getenv("MARSHALL_REQUIRE_PREREGISTERED_AGENTS", "false").lower() == "true"
         auto_registered_now = False
 
         if body.actor and body.actor.id:
@@ -128,7 +128,7 @@ def run_action(body: ActionInput, request: Request, org_id: str = Depends(authen
                     raise HTTPException(
                         403,
                         f"Agent {body.actor.id} is not registered. Ask an admin to "
-                        f"register it in the Keystone console."
+                        f"register it in the Action Marshall console."
                     )
                 # Auto-register: create a pending stub. Event is logged AFTER
                 # the action row exists (further below) to respect the FK.
@@ -311,7 +311,7 @@ def run_action(body: ActionInput, request: Request, org_id: str = Depends(authen
             )
             if slack_sent:
                 add_event(conn, action_id, "slack.notification_sent", {
-                    "channel": "keystone-approvals"
+                    "channel": "action-marshall-approvals"
                 })
 
         elif decision["decision"] in ("CANARY", "AUTO") and body.mode == "enforce":
@@ -571,7 +571,7 @@ def execute_from_dry_run(action_id: str, org_id: str = Depends(authenticate)):
                 ui_url=f"http://localhost:3000/actions/{new_action_id}",
             )
             if slack_sent:
-                add_event(conn, new_action_id, "slack.notification_sent", {"channel": "keystone-approvals"})
+                add_event(conn, new_action_id, "slack.notification_sent", {"channel": "action-marshall-approvals"})
         elif decision["decision"] in ("CANARY", "AUTO"):
             target_ids = preview["target_ids"]
             canary_size = decision["thresholds"].get("canary_size", 5)
@@ -579,7 +579,7 @@ def execute_from_dry_run(action_id: str, org_id: str = Depends(authenticate)):
             add_event(conn, new_action_id, "canary.started", {"subset": canary_ids})
             _update_status(conn, new_action_id, "canary_executing")
 
-            _meta2 = {"action_id": new_action_id, "actor_name": actor_data.get("name", "Keystone Agent")}
+            _meta2 = {"action_id": new_action_id, "actor_name": actor_data.get("name", "Action Marshall Agent")}
             canary_results = connector.execute_update(canary_ids, body.params.changes, metadata=_meta2)
             canary_error_rate = len([r for r in canary_results if not r.get("success")]) / max(len(canary_results), 1)
             conn.execute(
@@ -928,9 +928,9 @@ def get_record_timeline(action_id: str, org_id: str = Depends(authenticate)):
                 "verified": verified,
                 "success": result.get("success", False) if result else (phase == "protected"),
                 "error": result.get("error") if (result and not result.get("success")) else None,
-                # Keystone-attributed work_notes written to the target system.
+                # Action Marshall-attributed work_notes written to the target system.
                 # Only present for records where execute_update ran (canary / expand phases).
-                "keystone_work_note": result.get("keystone_work_note") if result else None,
+                "action_marshall_work_note": result.get("action_marshall_work_note") if result else None,
             })
 
         # Summary counts

@@ -1,5 +1,5 @@
 const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-const KEY = process.env.NEXT_PUBLIC_API_KEY || "ks_test_demo_key_001";
+const KEY = process.env.NEXT_PUBLIC_API_KEY || "am_test_demo_key_001";
 
 const EMPLOYEE_KEY = "ks_employee_id";
 
@@ -328,7 +328,7 @@ export async function downloadAuditExport(kind: "csv" | "json", filters: Record<
   const res = await fetch(url, { headers });
   if (!res.ok) throw new Error("Export failed");
   const blob = await res.blob();
-  const filename = `keystone_audit_${Date.now()}.${kind === "csv" ? "csv" : "json"}`;
+  const filename = `action_marshall_audit_${Date.now()}.${kind === "csv" ? "csv" : "json"}`;
   const href = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = href; a.download = filename; a.click();

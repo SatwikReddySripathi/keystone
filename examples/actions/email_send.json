@@ -1,0 +1,20 @@
+{
+  "tool": "email",
+  "action_type": "send",
+  "environment": "simulation",
+  "actor": {
+    "id": "comms-agent",
+    "name": "Outbound Comms Agent",
+    "type": "agent"
+  },
+  "params": {
+    "connector": "email_generic",
+    "query": {
+      "recipients": ["alice@example.com", "bob@example.com"]
+    },
+    "changes": {
+      "subject": "Daily incident summary",
+      "body_preview": "Top open P3s by service..."
+    }
+  }
+}

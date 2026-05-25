@@ -1,7 +1,7 @@
-from keystone import Keystone, Action, ActionParams, Actor
+from action_marshall import MarshallClient, Action, ActionParams, Actor
 
-ks = Keystone(
-    base_url="https://your-keystone-instance.com",
+ks = MarshallClient(
+    base_url="https://your-action_marshall-instance.com",
     api_key="ks_your_api_key",
 )
 

@@ -81,7 +81,7 @@ export default function AgentsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-ks-text">Agents</h1>
           <p className="text-[13px] text-ks-text2 mt-1.5 max-w-2xl leading-relaxed">
-            Registered AI agents authorized to propose actions through Keystone.
+            Registered AI agents authorized to propose actions through Action Marshall.
             Each agent has an owner, permissions, and a rate limit that governs what it can do.
           </p>
         </div>

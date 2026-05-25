@@ -5,9 +5,9 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Keystone — Transaction Governance for AI Agents",
+  title: "Action Marshall — Transaction Governance for AI Agents",
   description:
-    "Keystone sits between your AI agents and your production systems. Every action is previewed, policy-checked, canary-executed, and cryptographically audited.",
+    "Action Marshall sits between your AI agents and your production systems. Every action is previewed, policy-checked, canary-executed, and cryptographically audited.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

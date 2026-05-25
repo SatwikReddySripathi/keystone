@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Keystone MVP — Full Product Demo
+Action Marshall MVP — Full Product Demo
 
 This script demonstrates every governance capability in sequence.
 Run it while recording your screen for the demo video.
@@ -14,7 +14,7 @@ Scenarios:
 Prerequisites:
   - Backend running: cd backend && python -m uvicorn app.main:app --reload --port 8000
   - UI running:      cd ui && npm run dev
-  - Fresh database:  del backend/keystone.db before starting backend
+  - Fresh database:  del backend/action_marshall.db before starting backend
   - Slack (optional): for scenario 4 approval buttons
 
 Usage:
@@ -24,14 +24,14 @@ Usage:
 """
 import time
 import sys
-from keystone import Keystone, Action, ActionParams, Actor
+from action_marshall import MarshallClient, Action, ActionParams, Actor
 
 # ── Config ──
-API_KEY = "ks_test_demo_key_001"
+API_KEY = "am_test_demo_key_001"
 BASE_URL = "http://localhost:8000"
 UI_URL = "http://localhost:3000"
 
-ks = Keystone(base_url=BASE_URL, api_key=API_KEY)
+ks = MarshallClient(base_url=BASE_URL, api_key=API_KEY)
 
 # ── Helpers ──
 def header(title, subtitle=""):
@@ -138,7 +138,7 @@ def pause(msg="Press Enter to continue to next scenario...", seconds=0):
 # ═══════════════════════════════════════════════════════
 # Pre-flight check
 # ═══════════════════════════════════════════════════════
-header("KEYSTONE MVP DEMO", "Transaction governance for autonomous agent actions")
+header("ACTION MARSHALL MVP DEMO", "Action-level release control for AI agent actions")
 
 print("  Checking backend connectivity...")
 try:
@@ -184,7 +184,7 @@ action_safe = Action(
 
 result1 = ks.run(action_safe, mode="enforce")
 
-step(2, "Keystone previews blast radius...")
+step(2, "Action Marshall previews blast radius...")
 print(f"      -> {result1.blast_radius} records matched")
 if result1.preview:
     flags1 = result1.preview.get("flags", {})
@@ -230,7 +230,7 @@ print("  Policy allows it (no P1/VIP, medium blast radius -> canary).")
 print("  But when ServiceNow sets state='resolved', a business rule")
 print("  auto-populates 'resolved_at' and 'work_notes' — fields the")
 print("  agent didn't intend to change.\n")
-print("  Keystone's 'only_intended_fields' check will catch this.\n")
+print("  Action Marshall's 'only_intended_fields' check will catch this.\n")
 
 step(1, "Agent proposes resolve action...")
 action_resolve = Action(
@@ -311,7 +311,7 @@ detail_block(result2.action_id)
 if result2.status == "contained":
     canary_count = len(canary_exec.get("subset_ids_json", [])) if canary_exec else "?"
     print(f"  RESULT: Only {canary_count} of {result2.blast_radius} records touched. Rest protected.")
-    print(f"  Keystone caught the divergence and halted before damage spread.")
+    print(f"  Action Marshall caught the divergence and halted before damage spread.")
 elif result2.status == "completed":
     print(f"  RESULT: All {result2.blast_radius} records updated (no side-effects detected).")
 else:
@@ -389,7 +389,7 @@ header(
 print("  Situation: The agent wants to reassign P2 incidents to")
 print("  Executive Support. P2 records include VIP callers (CFO).")
 print("  Policy requires human approval for VIP-impacting actions.\n")
-print("  Keystone will pause the action and post to Slack.\n")
+print("  Action Marshall will pause the action and post to Slack.\n")
 
 step(1, "Agent proposes VIP-impacting action...")
 action_vip = Action(
@@ -504,7 +504,7 @@ pause(seconds=3)
 # ═══════════════════════════════════════════════════════
 # SUMMARY
 # ═══════════════════════════════════════════════════════
-header("DEMO COMPLETE", "Keystone — Transaction governance for autonomous agent actions")
+header("DEMO COMPLETE", "Action Marshall — Transaction governance for autonomous agent actions")
 
 actions = ks.list_actions()
 print(f"  Actions created: {len(actions)}")

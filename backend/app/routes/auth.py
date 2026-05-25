@@ -55,7 +55,7 @@ SMTP_HOST     = os.getenv("SMTP_HOST")
 SMTP_PORT     = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER     = os.getenv("SMTP_USER")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
-SMTP_FROM     = os.getenv("SMTP_FROM", "noreply@keystone.local")
+SMTP_FROM     = os.getenv("SMTP_FROM", "noreply@action_marshall.local")
 SMTP_USE_TLS  = os.getenv("SMTP_USE_TLS", "true").lower() != "false"
 
 
@@ -116,9 +116,9 @@ def _deliver_otp(email: str, purpose: str, code: str) -> None:
         print(f"[OTP] code = {code}", flush=True)
         return
 
-    subject = "Your Keystone verification code" if purpose == "login" else "Verify your Keystone account"
+    subject = "Your Action Marshall verification code" if purpose == "login" else "Verify your Action Marshall account"
     body = (
-        f"Your Keystone {purpose} code is:\n\n"
+        f"Your Action Marshall {purpose} code is:\n\n"
         f"    {code}\n\n"
         f"This code expires in {OTP_EXPIRY_MINUTES} minutes.\n"
         f"If you didn't request this, you can safely ignore this email."

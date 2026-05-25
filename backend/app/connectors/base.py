@@ -2,7 +2,7 @@
 Base connector interface.
 
 Every external tool (ServiceNow, Jira, Salesforce, etc.) implements
-these 4 methods. Keystone's engine code ONLY talks to this interface,
+these 4 methods. Action Marshall's engine code ONLY talks to this interface,
 never to a specific tool directly.
 
 This means:

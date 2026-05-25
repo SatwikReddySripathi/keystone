@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Keystone — Transaction Governance for AI Agents",
+  title: "Action Marshall — Transaction Governance for AI Agents",
   description:
-    "Keystone sits between your AI agents and your production systems. Every action is previewed, policy-checked, and cryptographically audited.",
+    "Action Marshall sits between your AI agents and your production systems. Every action is previewed, policy-checked, and cryptographically audited.",
 };
 
 // ── Primitive ────────────────────────────────────────────────────────
@@ -25,7 +25,7 @@ function Nav() {
           <div className="w-7 h-7 bg-zinc-900 rounded-md flex items-center justify-center">
             <span className="text-white text-xs font-bold tracking-tight">K</span>
           </div>
-          <span className="text-sm font-semibold text-zinc-900 tracking-tight">Keystone</span>
+          <span className="text-sm font-semibold text-zinc-900 tracking-tight">Action Marshall</span>
         </a>
         <nav className="hidden md:flex items-center gap-7 ml-2">
           {links.map((item) => (
@@ -77,7 +77,7 @@ function ProductPanel() {
         <div className="flex gap-1.5">
           {[0, 1, 2].map((i) => <div key={i} className="w-2.5 h-2.5 rounded-full bg-zinc-700" />)}
         </div>
-        <span className="text-[11px] text-zinc-500 ml-2 font-mono">keystone / transactions</span>
+        <span className="text-[11px] text-zinc-500 ml-2 font-mono">action_marshall / transactions</span>
         <div className="ml-auto flex items-center gap-1.5">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
           <span className="text-[11px] text-zinc-500">Live</span>
@@ -152,7 +152,7 @@ function Hero() {
               <span className="text-zinc-400">in production.</span>
             </h1>
             <p className="text-[17px] text-zinc-600 leading-relaxed mb-8 max-w-[460px]">
-              Keystone sits between your agents and your production systems.
+              Action Marshall sits between your agents and your production systems.
               Every action is previewed, policy-checked, and cryptographically
               audited — without slowing down legitimate automation.
             </p>
@@ -270,7 +270,7 @@ function Problem() {
             <span className="text-white text-[11px] font-bold">K</span>
           </div>
           <div>
-            <h3 className="text-[13px] font-semibold text-zinc-900 mb-1">Keystone gives you a third path.</h3>
+            <h3 className="text-[13px] font-semibold text-zinc-900 mb-1">Action Marshall gives you a third path.</h3>
             <p className="text-[13px] text-zinc-600 leading-relaxed max-w-[580px]">
               Precise, governed access for AI agents across every production system.
               Agents can act. Policies determine what, how much, and when.
@@ -313,7 +313,7 @@ function ProductSection() {
               Between your agents and your systems
             </h2>
             <p className="text-[15px] text-zinc-600 leading-relaxed mb-4">
-              Keystone intercepts every agent action before it touches your data.
+              Action Marshall intercepts every agent action before it touches your data.
               The action either runs under controlled conditions, waits for
               approval, or is blocked outright — based on your versioned policies.
             </p>
@@ -382,14 +382,14 @@ function ProductSection() {
 
 // ── Capabilities ─────────────────────────────────────────────────────
 const CAPS = [
-  { title: "Blast radius preview", body: "Before any action runs, Keystone queries the target system and computes exactly how many records will be affected, what will change, and what risk flags are present." },
+  { title: "Blast radius preview", body: "Before any action runs, Action Marshall queries the target system and computes exactly how many records will be affected, what will change, and what risk flags are present." },
   { title: "Policy-based decisions", body: "Versioned YAML policies define what triggers an auto-run, a canary, a human approval, or a block. Rules evaluate in milliseconds against the live preview." },
   { title: "Canary execution", body: "Every action executes on a deterministic five-record subset first. Five safety invariants run. Expansion only happens if every check passes." },
   { title: "Human approval flows", body: "High-risk actions route to designated approvers via Slack or the web interface, with full blast radius context. Approvals bind to an exact preview hash." },
   { title: "Workspace isolation", body: "Teams get scoped environments with their own policies, member roles, and connected systems. Org admins have full cross-workspace visibility." },
   { title: "Cryptographic audit trail", body: "Every action generates an HMAC-SHA256 signed proof receipt covering the full lifecycle. Tamper-evident. Exportable as CSV or signed JSON." },
   { title: "App connections", body: "Register every SaaS system your agents operate on. Control permission scopes, risk classification, and connection status per system, per workspace." },
-  { title: "Circuit breaker", body: "If canary execution reveals unexpected behavior — wrong fields changed, VIP records touched, error rate exceeded — Keystone halts automatically." },
+  { title: "Circuit breaker", body: "If canary execution reveals unexpected behavior — wrong fields changed, VIP records touched, error rate exceeded — Action Marshall halts automatically." },
 ];
 
 function Capabilities() {
@@ -403,7 +403,7 @@ function Capabilities() {
               Everything you need to ship agents in production
             </h2>
             <p className="text-[14px] text-zinc-600 leading-relaxed">
-              Keystone is not a monitoring layer. It governs execution before,
+              Action Marshall is not a monitoring layer. It governs execution before,
               during, and after — across every system your agents touch.
             </p>
           </div>
@@ -426,7 +426,7 @@ function Capabilities() {
 
 // ── How it works ──────────────────────────────────────────────────────
 const STEPS = [
-  { n: "01", title: "Preview", desc: "Keystone queries the target system and computes the exact blast radius — records affected, fields changing, risk flags detected.", cond: false },
+  { n: "01", title: "Preview", desc: "Action Marshall queries the target system and computes the exact blast radius — records affected, fields changing, risk flags detected.", cond: false },
   { n: "02", title: "Policy gate", desc: "Versioned rules evaluate the preview in milliseconds: AUTO, CANARY, APPROVAL_REQUIRED, or BLOCK.", cond: false },
   { n: "03", title: "Approval", desc: "If required, the action routes to designated approvers with full context. Approval binds to an exact preview hash — not the request.", cond: true },
   { n: "04", title: "Canary rollout", desc: "Five deterministic records execute first. Five safety checks run. If any check fails, the circuit breaker trips and expansion halts.", cond: false },
@@ -450,7 +450,7 @@ function HowItWorks() {
           </h2>
           <p className="text-[15px] text-zinc-600 leading-relaxed">
             From the moment an agent proposes an action to the moment it
-            completes, Keystone governs every step.
+            completes, Action Marshall governs every step.
           </p>
         </div>
 
@@ -547,7 +547,7 @@ function EnterpriseValue() {
             Deploy agents without giving up control
           </h2>
           <p className="text-[15px] text-zinc-600 leading-relaxed">
-            Keystone is designed for platform teams, security leaders, and the
+            Action Marshall is designed for platform teams, security leaders, and the
             enterprise buyers who need to govern AI automation at scale.
           </p>
         </div>
@@ -579,7 +579,7 @@ function CTASection() {
             Govern agent actions in production.
           </h2>
           <p className="text-[15px] text-zinc-400 leading-relaxed mb-8">
-            Keystone is production-ready for enterprise teams. Talk to us about
+            Action Marshall is production-ready for enterprise teams. Talk to us about
             your deployment, your connectors, and your governance requirements.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
@@ -612,7 +612,7 @@ function Footer() {
               <div className="w-6 h-6 bg-zinc-900 rounded flex items-center justify-center">
                 <span className="text-white text-[10px] font-bold">K</span>
               </div>
-              <span className="text-[13px] font-semibold text-zinc-900">Keystone</span>
+              <span className="text-[13px] font-semibold text-zinc-900">Action Marshall</span>
             </div>
             <p className="text-[12px] text-zinc-500 leading-relaxed max-w-[210px]">
               Transaction governance for AI agents.
@@ -633,7 +633,7 @@ function Footer() {
           ))}
         </div>
         <div className="flex flex-col md:flex-row items-center justify-between gap-3 mt-10 pt-6 border-t border-zinc-200">
-          <span className="text-[11px] text-zinc-400">© 2025 Keystone. All rights reserved.</span>
+          <span className="text-[11px] text-zinc-400">© 2025 Action Marshall. All rights reserved.</span>
           <div className="flex items-center gap-5">
             {["Privacy Policy", "Terms of Service", "Security"].map((item) => (
               <a key={item} href="#" className="text-[11px] text-zinc-400 hover:text-zinc-600 transition-colors duration-150">{item}</a>

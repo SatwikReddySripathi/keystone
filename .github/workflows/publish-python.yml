@@ -1,0 +1,101 @@
+name: Publish action-marshall to PyPI
+
+# Runs on annotated version tags (e.g. `v0.1.0`).
+# Uses PyPI Trusted Publishing (OIDC) — no API tokens.
+#
+# Before this workflow can succeed you must:
+#   1. Create the PyPI project `action-marshall`.
+#   2. Add this repository + workflow + environment `pypi` as a Trusted Publisher
+#      at https://pypi.org/manage/project/action-marshall/settings/publishing/
+#   3. Create a GitHub Environment named `pypi` (Settings → Environments).
+#
+# Step-by-step instructions: docs/release.md
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:        # manual trigger for testing
+
+concurrency:
+  group: publish-python-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build sdist + wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: sdk/pyproject.toml
+
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Verify tag matches package version
+        # Refuses to build if the git tag (`v0.1.0`) does not match the
+        # version declared in pyproject.toml. Stops us from publishing an
+        # incoherent release by accident.
+        if: github.event_name == 'push'
+        run: |
+          set -e
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          PKG_VERSION="$(python -c "import tomllib,pathlib; print(tomllib.loads(pathlib.Path('sdk/pyproject.toml').read_text())['project']['version'])")"
+          echo "tag=$TAG_VERSION pkg=$PKG_VERSION"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::tag v$TAG_VERSION does not match pyproject version $PKG_VERSION"
+            exit 1
+          fi
+
+      - name: Build distribution
+        working-directory: sdk
+        run: python -m build
+
+      - name: Check distribution metadata
+        working-directory: sdk
+        run: python -m twine check dist/*
+
+      - name: Upload distribution artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: sdk/dist/
+
+  publish:
+    name: Publish to PyPI (Trusted Publishing)
+    needs: build
+    runs-on: ubuntu-latest
+
+    # OIDC trusted publishing requires the workflow to run inside an
+    # Environment so PyPI can match the claim. Configure this environment
+    # in repo Settings → Environments → New environment: `pypi`.
+    environment:
+      name: pypi
+      url: https://pypi.org/p/action-marshall
+
+    permissions:
+      id-token: write       # required by gh-action-pypi-publish for OIDC
+
+    steps:
+      - name: Download distribution
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # No `password:` — the action uses OIDC against the trusted publisher.
+          packages-dir: dist/
+          skip-existing: true

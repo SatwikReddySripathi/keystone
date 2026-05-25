@@ -1,0 +1,119 @@
+name: Docker build
+
+# Builds the backend and UI Docker images on every PR + push to main, and
+# validates docker-compose.yaml is syntactically correct. Images are pushed
+# to GHCR (ghcr.io/<owner>/action-marshall-{backend,ui}) only when a `v*`
+# tag is pushed — never on PR or main, so the registry stays clean of
+# unreleased builds.
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+    paths:
+      - 'backend/**'
+      - 'ui/**'
+      - 'docker-compose.yaml'
+      - '.github/workflows/docker.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'ui/**'
+      - 'docker-compose.yaml'
+      - '.github/workflows/docker.yml'
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-compose:
+    name: Validate docker-compose.yaml
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: docker compose config
+        run: docker compose -f docker-compose.yaml config --quiet
+
+  build-backend:
+    name: Build backend image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write         # required for GHCR push on tags
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Compute image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/action-marshall-backend
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=short
+
+      - name: Log in to GHCR
+        # Only log in when we are actually going to push.
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build (and push on tag)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,scope=backend,mode=max
+
+  build-ui:
+    name: Build UI image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Compute image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/action-marshall-ui
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=short
+
+      - name: Log in to GHCR
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build (and push on tag)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ui
+          push: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=ui
+          cache-to: type=gha,scope=ui,mode=max

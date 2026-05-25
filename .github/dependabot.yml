@@ -1,0 +1,109 @@
+version: 2
+
+# Dependabot config for action-marshall.
+# Groups related updates and runs weekly to minimize PR noise.
+
+updates:
+  # ── GitHub Actions ──────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # ── Python: SDK (pyproject.toml) ────────────────────
+  - package-ecosystem: pip
+    directory: "/sdk"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "sdk"
+    groups:
+      dev-deps:
+        dependency-type: development
+      framework-extras:
+        # Optional adapter extras are grouped so a LangChain bump
+        # doesn't open six separate PRs alongside LangGraph etc.
+        patterns:
+          - "langchain*"
+          - "langgraph*"
+          - "crewai*"
+          - "pyautogen*"
+          - "mcp*"
+          - "llama-index*"
+          - "openai*"
+
+  # ── Python: backend (requirements.txt) ──────────────
+  - package-ecosystem: pip
+    directory: "/backend"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "backend"
+
+  # ── npm: UI ─────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: "/ui"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ui"
+    groups:
+      next-stack:
+        patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+          - "eslint-config-next"
+      tooling:
+        dependency-type: development
+
+  # ── npm: marketing website ──────────────────────────
+  - package-ecosystem: npm
+    directory: "/website"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "website"
+
+  # ── Docker: backend image ───────────────────────────
+  - package-ecosystem: docker
+    directory: "/backend"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # ── Docker: UI image ────────────────────────────────
+  - package-ecosystem: docker
+    directory: "/ui"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"

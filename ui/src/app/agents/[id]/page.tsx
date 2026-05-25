@@ -569,7 +569,7 @@ export default function AgentDetailPage({ params }: { params: { id: string } }) 
         </div>
         {data.recent_runs.length === 0 ? (
           <div className="px-6 py-12 text-center text-sm text-ks-text3">
-            No runs yet. When this agent proposes actions through Keystone, they will appear here.
+            No runs yet. When this agent proposes actions through Action Marshall, they will appear here.
           </div>
         ) : (
           <div className="divide-y divide-ks-border/50">

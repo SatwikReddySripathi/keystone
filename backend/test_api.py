@@ -6,7 +6,7 @@ import requests
 import json
 
 BASE = "http://localhost:8000"
-HEADERS = {"X-API-Key": "ks_test_demo_key_001", "Content-Type": "application/json"}
+HEADERS = {"X-API-Key": "am_test_demo_key_001", "Content-Type": "application/json"}
 
 
 def separator(title):

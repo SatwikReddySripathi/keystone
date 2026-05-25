@@ -1,5 +1,5 @@
 """
-Keystone MVP — FastAPI application entry point.
+Action Marshall MVP — FastAPI application entry point.
 
 Start with:
   uvicorn app.main:app --reload --port 8000
@@ -27,7 +27,7 @@ from app.routes.auth import router as auth_router
 from app.routes.access import router as access_router
 
 app = FastAPI(
-    title="Keystone",
+    title="Action Marshall",
     description="Transaction governance for agent actions",
     version="0.1.0",
 )
@@ -79,4 +79,4 @@ def startup():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "keystone"}
+    return {"status": "ok", "service": "action_marshall"}

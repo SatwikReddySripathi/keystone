@@ -1,0 +1,102 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "action-marshall"
+version = "0.1.0"
+description = "Action-level release control for AI agents: preview, approve, canary, halt, and audit tool actions before they touch production."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Action Marshall contributors" },
+]
+keywords = [
+    "ai",
+    "ai-agents",
+    "agents",
+    "agent-governance",
+    "policy",
+    "approval",
+    "audit",
+    "canary",
+    "circuit-breaker",
+    "tool-use",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Security",
+    "Typing :: Typed",
+]
+dependencies = [
+    "requests>=2.28.0",
+    "typer>=0.9,<1.0",
+]
+
+[project.scripts]
+action-marshall = "action_marshall.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/SatwikReddySripathi/action_marshall"
+Repository = "https://github.com/SatwikReddySripathi/action_marshall"
+Issues = "https://github.com/SatwikReddySripathi/action_marshall/issues"
+Documentation = "https://github.com/SatwikReddySripathi/action_marshall/tree/main/docs"
+
+# Optional framework adapters. Install just what you need:
+#   pip install "action-marshall[langchain]"
+[project.optional-dependencies]
+langchain = ["langchain-core>=0.1"]
+langgraph = ["langgraph>=0.0.40"]
+crewai = ["crewai>=0.30"]
+autogen = ["pyautogen>=0.2"]
+mcp = ["mcp>=0.1"]
+llamaindex = ["llama-index-core>=0.10"]
+openai = ["openai>=1.0"]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.1",
+    "build>=1.0",
+    "twine>=4.0",
+]
+all = [
+    "langchain-core>=0.1",
+    "langgraph>=0.0.40",
+    "crewai>=0.30",
+    "pyautogen>=0.2",
+    "mcp>=0.1",
+    "llama-index-core>=0.10",
+    "openai>=1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["action_marshall*"]
+exclude = ["tests*"]
+
+[tool.setuptools.package-data]
+action_marshall = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]

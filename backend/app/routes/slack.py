@@ -34,7 +34,7 @@ CONNECTORS = {
 
 def _resolve_slack_approver(conn, slack_user_id: str, slack_email: str | None) -> dict | None:
     """
-    Map a Slack user to a Keystone employee so we can enforce approval
+    Map a Slack user to a Action Marshall employee so we can enforce approval
     permissions the same way the web UI does.
 
     Resolution order:
@@ -103,18 +103,18 @@ async def slack_interact(request: Request):
     action = actions[0]
     action_id_slack = action.get("action_id", "")
     value = json.loads(action.get("value", "{}"))
-    keystone_action_id = value.get("action_id", "")
+    action_marshall_action_id = value.get("action_id", "")
 
-    if not keystone_action_id:
+    if not action_marshall_action_id:
         return JSONResponse({"text": "Missing action ID."})
 
-    # Resolve Slack user → Keystone employee before letting any write happen.
+    # Resolve Slack user → Action Marshall employee before letting any write happen.
     # Unmapped Slack users cannot approve / deny — enforced server-side.
     with get_db() as conn:
         employee = _resolve_slack_approver(conn, slack_user_id, slack_user_email)
         if not employee:
             denial_text = (
-                f":no_entry: *{slack_user_name}* is not registered in Keystone and "
+                f":no_entry: *{slack_user_name}* is not registered in Action Marshall and "
                 f"cannot approve actions. Ask an admin to link your Slack account."
             )
             _update_slack_message(response_url, denial_text)
@@ -125,15 +125,15 @@ async def slack_interact(request: Request):
             })
 
         # Check permission for this specific action
-        if action_id_slack in ("keystone_approve", "keystone_deny"):
-            org_id = _action_org(conn, keystone_action_id)
+        if action_id_slack in ("action_marshall_approve", "action_marshall_deny"):
+            org_id = _action_org(conn, action_marshall_action_id)
             allowed, reason = can_approve_action(
-                conn, org_id, employee["employee_id"], keystone_action_id
+                conn, org_id, employee["employee_id"], action_marshall_action_id
             )
             if not allowed:
                 denial_text = (
                     f":no_entry: *{employee['name']}* cannot {action_id_slack.split('_')[1]} "
-                    f"`{keystone_action_id}`: {reason}"
+                    f"`{action_marshall_action_id}`: {reason}"
                 )
                 _update_slack_message(response_url, denial_text)
                 return JSONResponse({
@@ -142,11 +142,11 @@ async def slack_interact(request: Request):
                     "text": denial_text,
                 })
 
-    if action_id_slack == "keystone_approve":
-        return _handle_approve(keystone_action_id, employee, response_url)
-    elif action_id_slack == "keystone_deny":
-        return _handle_deny(keystone_action_id, employee, response_url)
-    elif action_id_slack == "keystone_view":
+    if action_id_slack == "action_marshall_approve":
+        return _handle_approve(action_marshall_action_id, employee, response_url)
+    elif action_id_slack == "action_marshall_deny":
+        return _handle_deny(action_marshall_action_id, employee, response_url)
+    elif action_id_slack == "action_marshall_view":
         return JSONResponse({"text": "Opening details..."})
 
     return JSONResponse({"text": "Unknown action."})
@@ -158,7 +158,7 @@ def _action_org(conn, action_id: str) -> str:
 
 
 def _handle_approve(action_id: str, employee: dict, response_url: str = ""):
-    """Record approval (bound to a resolved Keystone employee) and execute."""
+    """Record approval (bound to a resolved Action Marshall employee) and execute."""
     approver_name = employee["name"]
     with get_db() as conn:
         action = conn.execute(
@@ -191,7 +191,7 @@ def _handle_approve(action_id: str, employee: dict, response_url: str = ""):
         preview_hash = preview["preview_hash"]
         policy_version = decision["policy_version"]
 
-        # Record approval with the RESOLVED Keystone employee identity.
+        # Record approval with the RESOLVED Action Marshall employee identity.
         # The Slack user's raw info never appears in the audit trail —
         # only the verified employee does.
         approver_json = json.dumps({
@@ -365,7 +365,7 @@ def _handle_approve(action_id: str, employee: dict, response_url: str = ""):
 
 
 def _handle_deny(action_id: str, employee: dict, response_url: str = ""):
-    """Record denial (bound to a resolved Keystone employee) and block."""
+    """Record denial (bound to a resolved Action Marshall employee) and block."""
     approver_name = employee["name"]
     with get_db() as conn:
         action = conn.execute(

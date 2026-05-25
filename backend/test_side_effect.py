@@ -55,6 +55,6 @@ failed_names = [ch["check_name"] for ch in checks if not ch["passed"]]
 assert "only_intended_fields" in failed_names, f"Expected only_intended_fields to fail, got {failed_names}"
 
 print("\n✓ Side effect detected → only_intended_fields failed → breaker tripped")
-print("  This is the 'contained' scenario: policy allowed, reality diverged, Keystone halted.")
+print("  This is the 'contained' scenario: policy allowed, reality diverged, Action Marshall halted.")
 
 c.reset()

@@ -13,7 +13,7 @@ import requests
 import time
 
 BASE = "http://localhost:8000"
-H = {"X-API-Key": "ks_test_demo_key_001", "Content-Type": "application/json"}
+H = {"X-API-Key": "am_test_demo_key_001", "Content-Type": "application/json"}
 
 # Submit action with VIP (P2) → APPROVAL_REQUIRED
 print("Submitting action with VIP records...")

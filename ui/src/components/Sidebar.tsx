@@ -69,7 +69,7 @@ export function Sidebar() {
           <div className="w-6 h-6 rounded-md bg-ks-primary flex items-center justify-center text-white font-bold select-none shadow-[0_0_15px_rgba(79,70,229,0.5)] group-hover:shadow-[0_0_20px_rgba(79,70,229,0.7)] transition-shadow duration-300" style={{ fontSize: "12px" }}>
             K
           </div>
-          <span className="text-[15px] font-semibold text-ks-text tracking-tight group-hover:text-ks-primary transition-colors">Keystone</span>
+          <span className="text-[15px] font-semibold text-ks-text tracking-tight group-hover:text-ks-primary transition-colors">Action Marshall</span>
         </Link>
       </div>
 

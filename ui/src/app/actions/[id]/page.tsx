@@ -1191,7 +1191,7 @@ export default function ActionDetailPage() {
       )}
 
       {/* ── Audit Notes Written to Target System ── */}
-      {timeline && (timeline.records || []).some((r: any) => r.keystone_work_note) && (
+      {timeline && (timeline.records || []).some((r: any) => r.action_marshall_work_note) && (
         <Section
           title="Audit Notes Written to ServiceNow"
           sub="Every governed change leaves an attribution entry in the incident's work_notes journal"
@@ -1199,7 +1199,7 @@ export default function ActionDetailPage() {
           <Card className="overflow-hidden">
             <div className="divide-y divide-ks-border">
               {(timeline.records || [])
-                .filter((r: any) => r.keystone_work_note)
+                .filter((r: any) => r.action_marshall_work_note)
                 .map((rec: any) => (
                   <div key={rec.sys_id} className="px-4 py-3">
                     <div className="flex items-start justify-between gap-3 mb-2">
@@ -1223,7 +1223,7 @@ export default function ActionDetailPage() {
                       )}
                     </div>
                     <div className="bg-ks-surface-2 border border-ks-border rounded px-3 py-2 text-[12px] font-mono text-ks-text whitespace-pre-wrap leading-relaxed">
-                      {rec.keystone_work_note}
+                      {rec.action_marshall_work_note}
                     </div>
                   </div>
                 ))}

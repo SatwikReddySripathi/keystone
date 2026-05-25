@@ -1,5 +1,5 @@
 """
-Keystone database layer.
+Action Marshall database layer.
 
 10 tables that track the full lifecycle of every governed action.
 Think of it as: an action flows through stages, and each stage
@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DB_PATH = os.getenv("DATABASE_PATH", "keystone.db")
+DB_PATH = os.getenv("DATABASE_PATH", "action_marshall.db")
 
 # ── Schema ──────────────────────────────────────────
 # Read through each table — they follow the action lifecycle:
@@ -193,7 +193,7 @@ def init_db():
     )
 
     # Seed default API key (stored as hash, never raw)
-    api_key = os.getenv("DEFAULT_API_KEY", "ks_test_demo_key_001")
+    api_key = os.getenv("DEFAULT_API_KEY", "am_test_demo_key_001")
     key_hash = hashlib.sha256(api_key.encode()).hexdigest()
     conn.execute(
         "INSERT OR IGNORE INTO api_keys (key_hash, org_id) VALUES (?, ?)",

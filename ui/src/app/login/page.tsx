@@ -154,7 +154,7 @@ export default function LoginPage() {
           <div className="w-9 h-9 rounded-lg bg-ks-primary flex items-center justify-center text-white font-bold shadow-[0_0_20px_rgba(79,70,229,0.4)]">
             K
           </div>
-          <span className="text-xl font-semibold text-ks-text tracking-tight">Keystone</span>
+          <span className="text-xl font-semibold text-ks-text tracking-tight">Action Marshall</span>
         </div>
 
         {stage === "credentials" && (
@@ -233,7 +233,7 @@ function CredentialsCard({
         <p className="text-[13px] text-ks-text2 leading-relaxed">
           {mode === "login"
             ? "Enter your work email and password. We'll send a one-time code to verify."
-            : "Register for Keystone with your work email. You'll verify with a one-time code."}
+            : "Register for Action Marshall with your work email. You'll verify with a one-time code."}
         </p>
       </div>
 

@@ -110,7 +110,7 @@ class ServiceNowSimulator(BaseConnector):
         """
         Apply changes to records. Returns per-record results.
 
-        Every update appends a Keystone attribution to work_notes (journal-style)
+        Every update appends a Action Marshall attribution to work_notes (journal-style)
         so every governed change leaves an audit trace on the incident itself.
         work_notes is EXCLUDED from changes_applied — the safety check only
         cares about fields the agent actually intended.
@@ -124,11 +124,11 @@ class ServiceNowSimulator(BaseConnector):
         Also detects VIP/P1 state changes for other checks.
         """
         ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
-        actor_name = (metadata or {}).get("actor_name", "Keystone Agent")
+        actor_name = (metadata or {}).get("actor_name", "Action Marshall Agent")
         action_id  = (metadata or {}).get("action_id", "")
         field_summary = ", ".join(f"{k}={v}" for k, v in changes.items())
-        keystone_note = (
-            f"[Keystone Governance Engine] Automated update by {actor_name} at {ts}."
+        action_marshall_note = (
+            f"[Action Marshall Governance Engine] Automated update by {actor_name} at {ts}."
             + (f" Action ID: {action_id}." if action_id else "")
             + f" Changes applied: {field_summary}"
         )
@@ -161,11 +161,11 @@ class ServiceNowSimulator(BaseConnector):
                 rec["resolved_at"] = datetime.utcnow().isoformat() + "Z"
                 fields_changed.append("resolved_at")
 
-            # Always append Keystone attribution to work_notes (journal-style).
+            # Always append Action Marshall attribution to work_notes (journal-style).
             # work_notes is NOT in changes_applied — it's our attribution, not an
             # agent-intended change or a side-effect the check should flag.
             existing_notes = rec.get("work_notes") or ""
-            rec["work_notes"] = (existing_notes + "\n\n" + keystone_note).strip()
+            rec["work_notes"] = (existing_notes + "\n\n" + action_marshall_note).strip()
             rec["updated_at"] = datetime.utcnow().isoformat() + "Z"
 
             after_snapshot = {f: rec.get(f) for f in fields_changed}
@@ -177,7 +177,7 @@ class ServiceNowSimulator(BaseConnector):
                 "changes_applied": fields_changed,
                 "before_snapshot": before_snapshot,
                 "after_snapshot": after_snapshot,
-                "keystone_work_note": keystone_note,
+                "action_marshall_work_note": action_marshall_note,
             }
             if unexpected:
                 result["unexpected_flags"] = unexpected

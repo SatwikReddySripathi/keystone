@@ -85,7 +85,7 @@ def _post_approval_request_inner(
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": ":shield: Keystone — Approval Required",
+                    "text": ":shield: Action Marshall — Approval Required",
                     "emoji": True,
                 }
             },
@@ -134,7 +134,7 @@ def _post_approval_request_inner(
                         "type": "button",
                         "text": {"type": "plain_text", "text": ":white_check_mark: Approve", "emoji": True},
                         "style": "primary",
-                        "action_id": "keystone_approve",
+                        "action_id": "action_marshall_approve",
                         "value": json.dumps({
                             "action_id": action_id,
                             "preview_hash": preview_hash,
@@ -145,7 +145,7 @@ def _post_approval_request_inner(
                         "type": "button",
                         "text": {"type": "plain_text", "text": ":x: Deny", "emoji": True},
                         "style": "danger",
-                        "action_id": "keystone_deny",
+                        "action_id": "action_marshall_deny",
                         "value": json.dumps({
                             "action_id": action_id,
                         }),
@@ -154,7 +154,7 @@ def _post_approval_request_inner(
                         "type": "button",
                         "text": {"type": "plain_text", "text": ":mag: View Details", "emoji": True},
                         "url": ui_url,
-                        "action_id": "keystone_view",
+                        "action_id": "action_marshall_view",
                     },
                 ]
             },

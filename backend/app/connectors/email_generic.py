@@ -3,7 +3,7 @@ Email Generic connector.
 
 Treats each email recipient as a "record" and the email
 (subject + body) as the change set. Designed for observe_only
-governance — Keystone evaluates policy and blast radius while
+governance — Action Marshall evaluates policy and blast radius while
 the calling agent sends the email itself via its own mail client
 (Outlook, Gmail, SMTP, etc.).
 
@@ -95,8 +95,8 @@ class EmailGenericConnector(BaseConnector):
         metadata: dict | None = None,
     ) -> list[dict]:
         """
-        Observe-only: Keystone governs, the agent sends.
-        If you want Keystone to send via SMTP, wire it up here.
+        Observe-only: Action Marshall governs, the agent sends.
+        If you want Action Marshall to send via SMTP, wire it up here.
         """
         return [
             {

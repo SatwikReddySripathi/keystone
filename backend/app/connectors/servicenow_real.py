@@ -16,7 +16,7 @@ Filter format accepted by query():
   {"priority": {"op": "in", "value": ["3", "4"]}}
   {"state": {"op": "ne", "value": "resolved"}}
 
-Keystone priority/state values vs ServiceNow numeric codes:
+Action Marshall priority/state values vs ServiceNow numeric codes:
   P1 ↔ 1 (Critical), P2 ↔ 2 (High), P3 ↔ 3 (Moderate), P4 ↔ 4 (Low)
   new ↔ 1, in_progress ↔ 2, on_hold ↔ 3, resolved ↔ 6, closed ↔ 7
 """
@@ -32,7 +32,7 @@ SYSPARM_FIELDS = (
     "caller_id,short_description,resolved_at,work_notes,sys_updated_on"
 )
 
-# ServiceNow numeric codes → Keystone internal strings
+# ServiceNow numeric codes → Action Marshall internal strings
 PRIORITY_MAP = {"1": "P1", "2": "P2", "3": "P3", "4": "P4", "5": "P5"}
 STATE_MAP = {
     "1": "new",
@@ -42,7 +42,7 @@ STATE_MAP = {
     "7": "closed",
 }
 
-# Reverse: Keystone internal → ServiceNow numeric codes
+# Reverse: Action Marshall internal → ServiceNow numeric codes
 PRIORITY_REVERSE = {v: k for k, v in PRIORITY_MAP.items()}
 STATE_REVERSE = {v: k for k, v in STATE_MAP.items()}
 
@@ -50,7 +50,7 @@ STATE_REVERSE = {v: k for k, v in STATE_MAP.items()}
 class ServiceNowRealConnector(BaseConnector):
     """
     Real ServiceNow connector using the Table API.
-    Normalizes all field values to match Keystone's internal format
+    Normalizes all field values to match Action Marshall's internal format
     so the engine (preview, policy, canary, checks) stays tool-agnostic.
     """
 
@@ -107,7 +107,7 @@ class ServiceNowRealConnector(BaseConnector):
     def query(self, filters: dict) -> list[dict]:
         """
         Query incidents from the real ServiceNow instance.
-        Translates Keystone filter format to sysparm_query string.
+        Translates Action Marshall filter format to sysparm_query string.
         Returns normalized records.
         """
         sysparm_query = _build_sysparm_query(filters)
@@ -160,22 +160,22 @@ class ServiceNowRealConnector(BaseConnector):
         # in_progress / on_hold updates; for resolved it's required.
         augmented = dict(changes)
         augmented.setdefault("close_code",  self._close_code)
-        augmented.setdefault("close_notes", "Resolved by Keystone automation")
+        augmented.setdefault("close_notes", "Resolved by Action Marshall automation")
 
         # Always append a work_notes attribution so every agent-driven change
         # has an audit trail visible in the ServiceNow activity log.
         ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-        actor_name = (metadata or {}).get("actor_name", "Keystone Agent")
+        actor_name = (metadata or {}).get("actor_name", "Action Marshall Agent")
         action_id  = (metadata or {}).get("action_id", "")
-        note_parts = [f"[Keystone Governance Engine] Automated update by {actor_name} at {ts}."]
+        note_parts = [f"[Action Marshall Governance Engine] Automated update by {actor_name} at {ts}."]
         if action_id:
             note_parts.append(f"Action ID: {action_id}")
         field_summary = ", ".join(f"{k}={v}" for k, v in changes.items())
         note_parts.append(f"Changes applied: {field_summary}")
-        keystone_note = " | ".join(note_parts)
-        augmented["work_notes"] = keystone_note
+        action_marshall_note = " | ".join(note_parts)
+        augmented["work_notes"] = action_marshall_note
 
-        # Convert Keystone internal values → ServiceNow numeric codes
+        # Convert Action Marshall internal values → ServiceNow numeric codes
         snow_changes = _to_snow_format(augmented)
         intended_fields = set(changes.keys())  # what the caller asked for (not augmented)
 
@@ -262,7 +262,7 @@ class ServiceNowRealConnector(BaseConnector):
                     # Actual values fetched from ServiceNow — not predicted from preview
                     "before_snapshot": {f: before.get(f) for f in changes_applied},
                     "after_snapshot":  {f: after.get(f)  for f in changes_applied},
-                    "keystone_work_note": keystone_note,
+                    "action_marshall_work_note": action_marshall_note,
                 }
                 if unexpected_flags:
                     result["unexpected_flags"] = unexpected_flags
@@ -307,7 +307,7 @@ class ServiceNowRealConnector(BaseConnector):
 
 def _normalize(r: dict) -> dict:
     """
-    Normalize a raw ServiceNow API record to Keystone's internal format.
+    Normalize a raw ServiceNow API record to Action Marshall's internal format.
 
     With sysparm_display_value=all, ServiceNow returns all fields as:
       {"value": "<raw_code>", "display_value": "<human_label>"}
@@ -354,7 +354,7 @@ def _normalize(r: dict) -> dict:
 
 def _to_snow_format(changes: dict) -> dict:
     """
-    Convert Keystone internal values to ServiceNow numeric codes.
+    Convert Action Marshall internal values to ServiceNow numeric codes.
     e.g. {"state": "resolved"} → {"state": "6"}
          {"priority": "P3"}    → {"priority": "3"}
     """
@@ -371,7 +371,7 @@ def _to_snow_format(changes: dict) -> dict:
 
 def _translate_filter_val(field: str, val) -> str:
     """
-    Translate a Keystone internal filter value to a ServiceNow API value.
+    Translate a Action Marshall internal filter value to a ServiceNow API value.
     state: "in_progress" → "2"   priority: "P3" → "3"
     Leaves unknown values untouched so raw numeric codes still work.
     """
@@ -384,7 +384,7 @@ def _translate_filter_val(field: str, val) -> str:
 
 def _build_sysparm_query(filters: dict) -> str:
     """
-    Convert Keystone filter format to ServiceNow sysparm_query string.
+    Convert Action Marshall filter format to ServiceNow sysparm_query string.
     Also translates internal state/priority values to ServiceNow numeric codes.
 
     Examples:

@@ -29,7 +29,7 @@ export default function ProofPage() {
     const blob = new Blob([JSON.stringify({ receipt: data.receipt, signature: data.signature }, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `keystone-receipt-${id}.json`;
+    a.download = `action_marshall-receipt-${id}.json`;
     a.click();
   };
 
@@ -84,7 +84,7 @@ export default function ProofPage() {
                 {data.verified ? "Cryptographically Verified" : "Signature Mismatch"}
               </h1>
               <p className="text-xs text-ks-text3 mt-0.5">
-                Signed by Keystone · HMAC-SHA256 · {r.generated_at}
+                Signed by Action Marshall · HMAC-SHA256 · {r.generated_at}
               </p>
             </div>
           </div>

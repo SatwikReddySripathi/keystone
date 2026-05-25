@@ -1,5 +1,5 @@
 # ──────────────────────────────────────────────
-# Keystone — .gitignore
+# Action Marshall — .gitignore
 # ──────────────────────────────────────────────
 
 # ── Secrets & environment ──────────────────────
@@ -45,7 +45,7 @@ htmlcov/
 *.log
 
 # SDK build artifacts
-sdk/keystone.egg-info/
+sdk/action_marshall.egg-info/
 sdk/dist/
 sdk/build/
 
@@ -74,18 +74,43 @@ ngrok.exe
 *.ngrok-v3.yml
 
 # ── Local assets not tracked publicly ──────────
-# Pitch deck and similar artifacts live under assets/ for local convenience
-# but are not committed to the public repo.
+# Pitch deck, video runbooks, launch / investor demo scripts, and similar
+# artifacts live under assets/ for local convenience but are not committed
+# to the public repo.
 assets/pitch/
+assets/internal/
 
 # ── IDE ────────────────────────────────────────
 .vscode/
 .idea/
+*.iml
 *.swp
 *.swo
 .cursor/
+
+# ── AI editor / assistant caches ───────────────
+.aider/
+.aider*
+.codeium/
+.continue/
+.tabnine/
+
+# ── Editor / merge backups ─────────────────────
+*.bak
+*.orig
+*.tmp
+*~
+
+# ── Local environment pins (vary per developer) ─
+.python-version
+.tool-versions
+.envrc
 
 # ── OS ─────────────────────────────────────────
 .DS_Store
 Thumbs.db
 desktop.ini
+
+
+# -- docs ----
+docs

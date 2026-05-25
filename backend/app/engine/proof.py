@@ -20,7 +20,7 @@ import json
 import os
 from datetime import datetime
 
-PROOF_SECRET = os.getenv("PROOF_SECRET", "keystone-dev-secret-change-in-production")
+PROOF_SECRET = os.getenv("PROOF_SECRET", "action_marshall-dev-secret-change-in-production")
 
 
 def generate_proof(
