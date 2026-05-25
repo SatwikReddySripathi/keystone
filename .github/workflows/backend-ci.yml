@@ -55,17 +55,26 @@ jobs:
 
       - name: Run backend unit tests (script-style)
         env:
-          DATABASE_PATH: ":memory:"
+          # Use a temp-file SQLite path, NOT ":memory:". The script-style
+          # tests call init_db() then later open a fresh connection via
+          # get_db(); with ":memory:" the second connection sees an empty
+          # database because SQLite drops an in-memory DB when the last
+          # connection closes. A real file path survives between calls.
+          DATABASE_PATH: ${{ runner.temp }}/ci-action-marshall.db
           PROOF_SECRET: "ci-test-secret"
           DEFAULT_ORG_ID: "org_demo"
           DEFAULT_API_KEY: "am_test_demo_key_001"
         run: |
           set -e
+          # Start each CI run from a clean DB so tests aren't accreting state.
+          rm -f "$DATABASE_PATH"
           for f in test_db.py test_simulator.py test_preview.py test_policy.py \
                    test_canary.py test_proof.py test_side_effect.py \
                    test_api.py test_approval_flow.py; do
             if [ -f "$f" ]; then
               echo "── Running $f ──"
+              # Reset the DB before each test for isolation.
+              rm -f "$DATABASE_PATH"
               python "$f"
             fi
           done
