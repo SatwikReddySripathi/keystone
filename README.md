@@ -413,7 +413,9 @@ ks.verify_receipt("act_...").verified  # True
 - **Secrets via environment variables only.** Never in source control. The repo has no committed secrets — see [SECURITY.md](SECURITY.md) for the full disclosure process.
 - **API keys.** Stored as SHA-256 hashes, scoped to `org_id`, transported via `X-API-Key`.
 
-Out of scope: model hallucination, identity-provider compromise, malicious infrastructure admins, and bad policies written by the customer. See the threat model in [SECURITY.md](SECURITY.md).
+Out of scope: model hallucination, identity-provider compromise, malicious infrastructure admins, and bad policies written by the customer.
+
+Full threat model, per-stage controls, crypto inventory, known weaknesses, and a self-host security checklist are in [docs/security.md](docs/security.md). Vulnerability disclosure: [SECURITY.md](SECURITY.md).
 
 ---
 
