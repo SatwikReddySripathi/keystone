@@ -104,8 +104,25 @@ We use **conventional commit** prefixes in PR titles to make changelogs easier:
 - `chore:` tooling, deps, config
 - `perf:` performance
 - `ci:` CI / workflow changes
+- `build:` build system or packaging changes
+
+Add a scope in parens when useful: `feat(sdk):`, `fix(ci):`, `docs(self-hosting):`.
+
+Flag breaking changes with a `!` after the prefix or a `BREAKING CHANGE:` footer:
+
+```
+feat(sdk)!: rename MarshallClient.run() second positional arg to `mode`
+```
 
 Example: `feat(sdk): add ks.wrap() for plain Python tools`
+
+### Changelog
+
+If your PR changes user-visible behavior, add an entry to [CHANGELOG.md](CHANGELOG.md) under the `[Unreleased]` section. Describe the impact in past tense, user-facing terms — not the implementation. Skip the changelog for internal-only changes (CI tweaks, test refactors, comment-only edits).
+
+### Versioning
+
+We follow [Semantic Versioning](https://semver.org/) with one caveat: while we are pre-1.0, **minor version bumps may include breaking changes**. Patch bumps are always non-breaking. Pin to a specific minor (`action-marshall ~= 0.1.0`) if you cannot tolerate that.
 
 ## Honest Documentation
 
@@ -127,12 +144,17 @@ Do not blur these. A feature that does not actually work is `planned`, not `avai
 
 ## Release Process
 
-Releases are tagged and published from `main`. The current release process is documented in [RELEASE.md](RELEASE.md) (planned). For now:
+Releases are tagged and published from `main`. The one-page checklist is [RELEASE.md](RELEASE.md); the full runbook (PyPI Trusted Publisher setup, GHCR permissions, rollback) is [docs/release.md](docs/release.md).
 
-1. Bump the version in `sdk/setup.py` (later: `pyproject.toml`).
-2. Update `CHANGELOG.md`.
-3. Tag the commit `vX.Y.Z`.
-4. Push the tag. The publish workflow (planned) will build and upload to PyPI.
+Short version:
+
+1. Bump `version` in [sdk/pyproject.toml](sdk/pyproject.toml).
+2. Move `[Unreleased]` entries in [CHANGELOG.md](CHANGELOG.md) under a new `[X.Y.Z]` heading.
+3. Run `python scripts/release_check.py vX.Y.Z` to verify everything is consistent.
+4. Open a `release/vX.Y.Z` PR, merge.
+5. `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`.
+
+The tag push triggers PyPI + Docker publish via GitHub Actions.
 
 ## Questions
 
