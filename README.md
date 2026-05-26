@@ -262,17 +262,19 @@ Environment variables to set (see [backend/.env.example](backend/.env.example)):
 
 The backend image runs `gunicorn` with a single uvicorn worker. Rate-limiting and approval state are in-process today, so do not raise the worker count without first moving that state to Redis. Postgres support is `planned`.
 
-More: [docs/self-hosting.md](docs/self-hosting.md) *(coming)*.
+More: [docs/self-hosting.md](docs/self-hosting.md) for the 5-minute quickstart, env vars, backup, HTTPS termination, and upgrade steps. Production hardening: [docs/deployment.md](docs/deployment.md).
 
 ---
 
 ## Want Action Marshall hosted for you?
 
-If you do not want to operate Action Marshall yourself, **join the waitlist for hosted Action Marshall**.
+**Self-host today.** Join the hosted waitlist if you want Action Marshall managed for you.
 
-We run the control layer. You connect your agents through the SDK / API key. Your team gets action previews, approvals, canaries, circuit breakers, and signed audit receipts — without managing infrastructure.
+We run the control layer. You connect your agents through the SDK / API key. Your team gets action previews, approvals, canaries, circuit breakers, and signed audit receipts — without managing infrastructure. Migration from self-host is a one-line `base_url` change.
 
 [**Join the hosted waitlist →**](#)  *(link coming — hosted Action Marshall is not live yet)*
+
+Full hosted vs. self-host comparison, what hosted will and won't do, and the design-partner program: [docs/hosted.md](docs/hosted.md).
 
 ---
 
