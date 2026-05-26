@@ -76,6 +76,20 @@ jobs:
             fi
           done
 
+      - name: Run backend pytest suite (TestClient-based, no server)
+        working-directory: backend
+        env:
+          # The pytest suite's `client` fixture provides per-test temp DBs
+          # via monkeypatch, but Python's dotenv (loaded at app import time)
+          # still wants these to exist with sane values so the import
+          # itself doesn't crash. The fixture overrides them per test.
+          DATABASE_PATH: ${{ runner.temp }}/pytest-bootstrap.db
+          PROOF_SECRET: "ci-test-secret"
+          DEFAULT_ORG_ID: "org_demo"
+          DEFAULT_API_KEY: "am_test_demo_key_001"
+          SLACK_WEBHOOK_URL: ""
+        run: pytest -v
+
       - name: Run SDK pytest suite
         working-directory: sdk
         run: pytest -v
