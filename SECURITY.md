@@ -68,9 +68,13 @@ Action Marshall is **not** designed to defend against:
 - Connector credentials leaked outside Action Marshall.
 - Compromise of the customer's application code that calls Action Marshall.
 
+For each threat, the specific controls (and known weaknesses) are documented in [docs/security.md](docs/security.md).
+
 ## Cryptographic Material
 
 Action Marshall signs audit receipts with HMAC-SHA256 using a secret from the `PROOF_SECRET` environment variable. The same secret is required to verify receipts. Do not commit this value to source control. In production, generate a long random value and store it in your secret manager.
+
+For the full crypto inventory (signing, hashing, canary subset selection, password storage and its known weaknesses) see [docs/security.md](docs/security.md).
 
 ## Disclosures
 
