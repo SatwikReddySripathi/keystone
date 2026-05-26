@@ -62,28 +62,63 @@ This installs the `action-marshall` package in editable mode. You can then `from
 
 ## Tests
 
-Backend tests are runnable scripts at `backend/test_*.py`:
+Three test surfaces, three runners. CI runs all of them on every push and PR — a change that breaks any of them will not merge.
+
+### Backend — pytest suite (preferred for new tests)
+
+Fast, in-process tests using FastAPI's `TestClient`. No server needed. Each test gets a fresh temp SQLite DB.
 
 ```bash
 cd backend
-python test_db.py
-python test_preview.py
-python test_policy.py
-# ...etc
+python -m pytest -v
 ```
 
-Frontend checks:
+Lives in `backend/tests/`. Add new tests here. The `client` fixture in `backend/tests/conftest.py` provides an authenticated `TestClient` with a clean DB.
+
+### Backend — legacy script-style tests
+
+Older module-level scripts. Useful for integration coverage that hits a live uvicorn (canary side-effects, end-to-end API + approval flow). CI runs them in two phases:
+
+```bash
+cd backend
+# Phase 1: pure-Python tests
+python test_db.py
+python test_simulator.py
+python test_preview.py
+python test_policy.py
+python test_canary.py
+python test_proof.py
+python test_side_effect.py
+
+# Phase 2: HTTP-based tests (start uvicorn first)
+uvicorn app.main:app --port 8000 &
+python test_api.py
+python test_approval_flow.py
+kill %1
+```
+
+New tests should land in the pytest suite, not as new `backend/test_*.py` scripts.
+
+### SDK — pytest suite
+
+```bash
+cd sdk
+python -m pytest -v
+```
+
+34+ tests covering imports, action serialization, the `MarshallClient` HTTP methods, the `wrap_function` decorator, framework adapter graceful failure, and the CLI.
+
+### Frontend checks
 
 ```bash
 cd ui
+npm ci
 npm run lint
 npx tsc --noEmit
 npm run build
 ```
 
-CI runs the same commands on every push and pull request. A change that breaks CI will not merge.
-
-We are migrating tests to `pytest` and adding SDK and CLI tests as part of the public-launch checklist. New tests should prefer `pytest` style where practical.
+UI doesn't have unit tests yet (Next.js build + lint + type-check is the smoke test). Component-level testing is `planned`.
 
 ## Pull Requests
 
