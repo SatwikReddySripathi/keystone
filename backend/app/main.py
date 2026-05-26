@@ -79,4 +79,60 @@ def startup():
 
 @app.get("/health")
 def health():
+    """Liveness probe.
+
+    Returns 200 as long as the process is up. Use this for load balancer
+    /  k8s liveness checks where you only want to know if the server should
+    be restarted.
+    """
     return {"status": "ok", "service": "action_marshall"}
+
+
+@app.get("/ready")
+def ready():
+    """Readiness probe.
+
+    Returns 200 only if the server can actually serve traffic:
+      - the database is reachable and has the expected schema
+      - the proof-signing secret is configured (PROOF_SECRET env var)
+
+    Use this for load-balancer / k8s readiness gates and for healthcheck
+    blocks in docker-compose, so a half-initialised process is not added
+    to the rotation.
+
+    Returns HTTP 503 with the failing check if anything is wrong.
+    """
+    checks: dict[str, object] = {}
+
+    # ── DB connectivity + schema sanity ─────────────
+    try:
+        from app.db import get_db
+
+        with get_db() as conn:
+            row = conn.execute(
+                "SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table' AND name='orgs'"
+            ).fetchone()
+            if row["n"] == 1:
+                checks["database"] = "ok"
+            else:
+                checks["database"] = "schema missing — init_db did not run"
+    except Exception as exc:
+        checks["database"] = f"error: {type(exc).__name__}: {exc}"
+
+    # ── Proof signing key present ───────────────────
+    # An unsigned proof is a silent integrity failure, so refuse to serve
+    # if the signing key is missing.
+    if os.getenv("PROOF_SECRET"):
+        checks["proof_secret"] = "ok"
+    else:
+        checks["proof_secret"] = "missing (set PROOF_SECRET env var)"
+
+    ok = all(v == "ok" for v in checks.values())
+    return JSONResponse(
+        status_code=200 if ok else 503,
+        content={
+            "status": "ready" if ok else "not_ready",
+            "service": "action_marshall",
+            "checks": checks,
+        },
+    )

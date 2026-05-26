@@ -1,27 +1,76 @@
-version: "3.8"
+# Action Marshall — local self-host
+#
+# Quick start:
+#   1. cp .env.example .env  (then edit values you care about)
+#   2. docker compose up --build
+#   3. open http://localhost:3000
+#
+# Production notes are in docs/deployment.md.
 
 services:
   backend:
     build: ./backend
+    image: action-marshall-backend:local
+    container_name: action-marshall-backend
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_PATH=/app/data/action_marshall.db
-      - PROOF_SECRET=action_marshall-dev-secret-change-in-production
-      - DEFAULT_ORG_ID=org_demo
-      - DEFAULT_API_KEY=am_test_demo_key_001
+      # Read from .env if present; fall back to local-safe defaults so
+      # `docker compose up` works out of the box for a clean checkout.
+      DATABASE_PATH: /app/data/action_marshall.db
+      PROOF_SECRET: ${PROOF_SECRET:-action_marshall-dev-secret-change-in-production}
+      DEFAULT_ORG_ID: ${DEFAULT_ORG_ID:-org_demo}
+      DEFAULT_API_KEY: ${DEFAULT_API_KEY:-am_test_demo_key_001}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000}
+      # Optional integrations. Leave blank to disable.
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
+      SNOW_INSTANCE: ${SNOW_INSTANCE:-}
+      SNOW_USERNAME: ${SNOW_USERNAME:-}
+      SNOW_PASSWORD: ${SNOW_PASSWORD:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
     volumes:
+      # Named volume persists the SQLite DB and any future on-disk state
+      # across container restarts and image rebuilds.
       - action-marshall-data:/app/data
+    healthcheck:
+      # /ready returns 503 if the DB or signing key isn't ready, so this
+      # only flips to healthy once the service can actually serve traffic.
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/ready"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
 
   ui:
-    build: ./ui
+    build:
+      context: ./ui
+      args:
+        # NEXT_PUBLIC_* values are baked into the static bundle at build
+        # time. Override them here if you're building for a non-localhost
+        # backend.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        NEXT_PUBLIC_API_KEY: ${NEXT_PUBLIC_API_KEY:-am_test_demo_key_001}
+    image: action-marshall-ui:local
+    container_name: action-marshall-ui
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-      - NEXT_PUBLIC_API_KEY=am_test_demo_key_001
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      NEXT_PUBLIC_API_KEY: ${NEXT_PUBLIC_API_KEY:-am_test_demo_key_001}
     depends_on:
-      - backend
+      backend:
+        # Wait for /ready to flip healthy before bringing the UI up,
+        # so first page-load doesn't race the backend's init_db().
+        condition: service_healthy
 
 volumes:
+  # Lives at the default docker volume location on the host. Back this up
+  # to preserve action history and audit receipts — see docs/deployment.md.
   action-marshall-data:
