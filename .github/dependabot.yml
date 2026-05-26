@@ -84,6 +84,12 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
+      # ESLint major bumps break eslint-config-next peer-deps
+      # (eslint-config-next@14.x only accepts eslint ^7.23 || ^8).
+      # The "tooling" dev-deps group can't bump eslint without also
+      # bumping eslint-config-next, which requires bumping Next.js.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
 
   # ── npm: marketing website ──────────────────────────
   - package-ecosystem: npm
@@ -121,7 +127,7 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 3
+    open-pull-requests-l  imit: 3
     ignore:
       # Pin Node base image major version — Node 20 LTS is the current target.
       - dependency-name: "node"
